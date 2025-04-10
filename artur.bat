@@ -1,6 +1,6 @@
 @echo off
 :: Esperar 3 segundos
-ping 127.0.0.1 -n 300 > nul
+ping 127.0.0.1 -n 600 > nul
 
 :: Crear archivo VBS en temp (ruta segura) para el mensaje repetitivo
 set rutaContador=%TEMP%\contactar.vbs
