@@ -8,5 +8,15 @@
     "status": "pending",
     "createdAt": "2025-09-18T21:26:59.431Z",
     "updatedAt": "2025-09-18T21:26:59.431Z"
+  },
+  {
+    "id": "1758231408166",
+    "title": "prueba 2",
+    "date": "2025-09-19",
+    "description": "prueba_2",
+    "priority": "high",
+    "status": "in-progress",
+    "createdAt": "2025-09-18T21:36:48.166Z",
+    "updatedAt": "2025-09-18T21:36:48.166Z"
   }
 ]
