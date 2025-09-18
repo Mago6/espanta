@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Tareas con GitHub - Solución de Errores</title>
+    <title>Sistema de Tareas con Calendario</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -21,7 +21,7 @@
         }
         
         .container {
-            max-width: 1000px;
+            max-width: 1400px;
             margin: 0 auto;
             background: white;
             border-radius: 15px;
@@ -52,28 +52,70 @@
             padding: 30px;
         }
         
-        .error-section {
-            background: #fff8e1;
-            border: 2px solid #ffc107;
-            border-radius: 10px;
-            padding: 20px;
+        .view-toggle {
+            display: flex;
+            justify-content: center;
             margin-bottom: 30px;
+            gap: 15px;
         }
         
-        .error-title {
-            color: #ff9800;
-            margin-bottom: 15px;
+        .view-btn {
+            padding: 12px 25px;
+            background: #e4e8f0;
+            color: #555;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+            transition: all 0.3s ease;
         }
         
-        .controls {
+        .view-btn.active {
+            background: #2575fc;
+            color: white;
+        }
+        
+        .view-btn:hover {
+            background: #1a67e8;
+            color: white;
+        }
+        
+        .filter-section {
             display: flex;
             flex-wrap: wrap;
             gap: 15px;
             margin-bottom: 30px;
             justify-content: center;
+            align-items: center;
+        }
+        
+        .filter-title {
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .filter-btn {
+            padding: 10px 20px;
+            background: #f0f4ff;
+            color: #2575fc;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .filter-btn.active {
+            background: #2575fc;
+            color: white;
+        }
+        
+        .filter-btn:hover {
+            background: #1a67e8;
+            color: white;
         }
         
         .btn {
@@ -111,12 +153,157 @@
             background: #555;
         }
         
-        .btn-fix {
-            background: #ff9800;
+        .calendar-view {
+            display: none;
         }
         
-        .btn-fix:hover {
-            background: #f57c00;
+        .calendar-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+        }
+        
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .month-nav {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .month-nav-btn {
+            background: #f0f4ff;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #2575fc;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+        
+        .month-nav-btn:hover {
+            background: #2575fc;
+            color: white;
+        }
+        
+        .current-month {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2575fc;
+        }
+        
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: 600;
+            color: #6a11cb;
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+        }
+        
+        .calendar-day {
+            min-height: 120px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 10px;
+            position: relative;
+            background: #fafbff;
+        }
+        
+        .day-number {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #777;
+        }
+        
+        .other-month {
+            background: #f9f9f9;
+        }
+        
+        .other-month .day-number {
+            color: #ccc;
+        }
+        
+        .today {
+            background: #e6f0ff;
+            border: 2px solid #2575fc;
+        }
+        
+        .today .day-number {
+            color: #2575fc;
+            font-weight: 700;
+        }
+        
+        .tasks-container-cal {
+            margin-top: 25px;
+            overflow-y: auto;
+            max-height: 85px;
+        }
+        
+        .task-item-cal {
+            background: white;
+            padding: 8px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-left: 4px solid #2575fc;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .task-item-cal:hover {
+            transform: translateX(3px);
+        }
+        
+        .priority-high {
+            border-left-color: #ff5252;
+        }
+        
+        .priority-medium {
+            border-left-color: #ffc107;
+        }
+        
+        .priority-low {
+            border-left-color: #4caf50;
+        }
+        
+        .collaborator-1 {
+            border-left-color: #6a11cb;
+        }
+        
+        .collaborator-2 {
+            border-left-color: #2575fc;
+        }
+        
+        .collaborator-3 {
+            border-left-color: #0cbc87;
+        }
+        
+        .list-view {
+            display: block;
         }
         
         .task-form {
@@ -146,7 +333,7 @@
             color: #444;
         }
         
-        .form-group input, .form-group textarea {
+        .form-group input, .form-group textarea, .form-group select {
             width: 100%;
             padding: 12px;
             border: 1px solid #ddd;
@@ -208,6 +395,18 @@
             border-left-color: #4caf50;
         }
         
+        .task-item.collaborator-1 {
+            border-left-color: #6a11cb;
+        }
+        
+        .task-item.collaborator-2 {
+            border-left-color: #2575fc;
+        }
+        
+        .task-item.collaborator-3 {
+            border-left-color: #0cbc87;
+        }
+        
         .task-header {
             display: flex;
             justify-content: space-between;
@@ -257,6 +456,30 @@
         .priority-low {
             background: #e8f5e9;
             color: #4caf50;
+        }
+        
+        .task-collaborator {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .collaborator-1 {
+            background: #f0e6ff;
+            color: #6a11cb;
+        }
+        
+        .collaborator-2 {
+            background: #e6f0ff;
+            color: #2575fc;
+        }
+        
+        .collaborator-3 {
+            background: #e6f7f0;
+            color: #0cbc87;
         }
         
         .task-actions {
@@ -333,25 +556,6 @@
             display: block;
         }
         
-        .status-message {
-            padding: 10px 15px;
-            border-radius: 8px;
-            margin: 10px 0;
-            display: none;
-        }
-        
-        .status-success {
-            background: #e8f5e9;
-            color: #2e7d32;
-            border: 1px solid #4caf50;
-        }
-        
-        .status-error {
-            background: #ffebee;
-            color: #c62828;
-            border: 1px solid #ef5350;
-        }
-        
         footer {
             text-align: center;
             padding: 20px;
@@ -373,106 +577,157 @@
                 position: static;
                 margin-top: 10px;
             }
+            
+            .calendar-day {
+                min-height: 100px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Sistema de Tareas con GitHub</h1>
-            <p class="description">Solución al error "JSON.parse: unexpected end of data"</p>
+            <h1>Sistema de Tareas con Calendario</h1>
+            <p class="description">Visualiza tus tareas en formato de lista o calendario y filtra por colaborador</p>
         </header>
         
         <div class="content">
-            <div class="error-section">
-                <h2 class="error-title"><i class="fas fa-exclamation-triangle"></i> Solución al Error de JSON</h2>
-                <p>El error <strong>"JSON.parse: unexpected end of data"</strong> ocurre cuando:</p>
-                <ul>
-                    <li>El archivo JSON en GitHub está vacío</li>
-                    <li>La URL de GitHub es incorrecta</li>
-                    <li>El archivo no existe en GitHub</li>
-                    <li>Hay problemas de conexión con GitHub</li>
-                </ul>
-                <button class="btn btn-fix" id="auto-fix-btn">
-                    <i class="fas fa-magic"></i> Solucionar Automáticamente
+            <div class="view-toggle">
+                <button class="view-btn active" id="list-view-btn">
+                    <i class="fas fa-list"></i> Vista de Lista
+                </button>
+                <button class="view-btn" id="calendar-view-btn">
+                    <i class="fas fa-calendar-alt"></i> Vista de Calendario
                 </button>
             </div>
             
-            <div class="controls">
-                <button class="btn" id="new-task-btn">
-                    <i class="fas fa-plus"></i> Nueva Tarea
+            <div class="filter-section">
+                <span class="filter-title">Filtrar por colaborador:</span>
+                <button class="filter-btn active" data-collaborator="all">
+                    <i class="fas fa-users"></i> Todos
                 </button>
-                <button class="btn btn-export" id="export-btn">
-                    <i class="fas fa-download"></i> Exportar Tareas
+                <button class="filter-btn" data-collaborator="1">
+                    <i class="fas fa-user"></i> Colaborador 1
                 </button>
-                <button class="btn" id="import-btn">
-                    <i class="fas fa-upload"></i> Importar Tareas
+                <button class="filter-btn" data-collaborator="2">
+                    <i class="fas fa-user"></i> Colaborador 2
                 </button>
-                <button class="btn btn-github" id="load-github-btn">
-                    <i class="fab fa-github"></i> Cargar desde GitHub
+                <button class="filter-btn" data-collaborator="3">
+                    <i class="fas fa-user"></i> Colaborador 3
                 </button>
-                <button class="btn btn-fix" id="create-json-btn">
-                    <i class="fas fa-file-code"></i> Crear JSON Inicial
-                </button>
-                <input type="file" id="import-file" accept=".json" style="display: none">
             </div>
             
-            <div id="status-message" class="status-message"></div>
-            
-            <div class="task-form" id="task-form" style="display: none;">
-                <h2 class="form-title" id="form-title">Agregar Nueva Tarea</h2>
+            <div class="list-view" id="list-view">
+                <div class="controls">
+                    <button class="btn" id="new-task-btn">
+                        <i class="fas fa-plus"></i> Nueva Tarea
+                    </button>
+                    <button class="btn btn-export" id="export-btn">
+                        <i class="fas fa-download"></i> Exportar Tareas
+                    </button>
+                    <button class="btn" id="import-btn">
+                        <i class="fas fa-upload"></i> Importar Tareas
+                    </button>
+                    <button class="btn btn-github" id="load-github-btn">
+                        <i class="fab fa-github"></i> Cargar desde GitHub
+                    </button>
+                    <input type="file" id="import-file" accept=".json" style="display: none">
+                </div>
                 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="task-title">Título de la Tarea</label>
-                        <input type="text" id="task-title" placeholder="Ej: Revisar documentación">
+                <div class="task-form" id="task-form" style="display: none;">
+                    <h2 class="form-title" id="form-title">Agregar Nueva Tarea</h2>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="task-title">Título de la Tarea</label>
+                            <input type="text" id="task-title" placeholder="Ej: Revisar documentación">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="task-date">Fecha</label>
+                            <input type="date" id="task-date">
+                        </div>
                     </div>
                     
                     <div class="form-group">
-                        <label for="task-date">Fecha</label>
-                        <input type="date" id="task-date">
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="task-description">Descripción</label>
-                    <textarea id="task-description" placeholder="Describe los detalles de la tarea..."></textarea>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="task-priority">Prioridad</label>
-                        <select id="task-priority">
-                            <option value="low">Baja</option>
-                            <option value="medium" selected>Media</option>
-                            <option value="high">Alta</option>
-                        </select>
+                        <label for="task-description">Descripción</label>
+                        <textarea id="task-description" placeholder="Describe los detalles de la tarea..."></textarea>
                     </div>
                     
-                    <div class="form-group">
-                        <label for="task-status">Estado</label>
-                        <select id="task-status">
-                            <option value="pending" selected>Pendiente</option>
-                            <option value="in-progress">En Progreso</option>
-                            <option value="completed">Completada</option>
-                        </select>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="task-priority">Prioridad</label>
+                            <select id="task-priority">
+                                <option value="low">Baja</option>
+                                <option value="medium" selected>Media</option>
+                                <option value="high">Alta</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="task-collaborator">Colaborador</label>
+                            <select id="task-collaborator">
+                                <option value="1">Colaborador 1</option>
+                                <option value="2">Colaborador 2</option>
+                                <option value="3">Colaborador 3</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="task-status">Estado</label>
+                            <select id="task-status">
+                                <option value="pending" selected>Pendiente</option>
+                                <option value="in-progress">En Progreso</option>
+                                <option value="completed">Completada</option>
+                            </select>
+                        </div>
                     </div>
+                    
+                    <button class="btn" id="save-task-btn">
+                        <i class="fas fa-save"></i> Guardar Tarea
+                    </button>
+                    <button class="btn" id="cancel-btn" style="background: #777;">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
                 </div>
                 
-                <button class="btn" id="save-task-btn">
-                    <i class="fas fa-save"></i> Guardar Tarea
-                </button>
-                <button class="btn" id="cancel-btn" style="background: #777;">
-                    <i class="fas fa-times"></i> Cancelar
-                </button>
+                <div class="tasks-container">
+                    <h2 class="tasks-title">Tus Tareas</h2>
+                    <div class="task-list" id="task-list">
+                        <div class="empty-state" id="empty-state">
+                            <i class="fas fa-tasks"></i>
+                            <p>No hay tareas. ¡Agrega tu primera tarea!</p>
+                        </div>
+                    </div>
+                </div>
             </div>
             
-            <div class="tasks-container">
-                <h2 class="tasks-title">Tus Tareas</h2>
-                <div class="task-list" id="task-list">
-                    <div class="empty-state" id="empty-state">
-                        <i class="fas fa-tasks"></i>
-                        <p>No hay tareas. ¡Agrega tu primera tarea!</p>
+            <div class="calendar-view" id="calendar-view">
+                <div class="calendar-container">
+                    <div class="calendar-header">
+                        <div class="month-nav">
+                            <button class="month-nav-btn" id="prev-month"><i class="fas fa-chevron-left"></i></button>
+                            <h2 class="current-month" id="current-month">Septiembre 2023</h2>
+                            <button class="month-nav-btn" id="next-month"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                        
+                        <button class="btn" id="today-btn">
+                            <i class="fas fa-calendar-day"></i> Hoy
+                        </button>
+                    </div>
+                    
+                    <div class="weekdays">
+                        <div>Lun</div>
+                        <div>Mar</div>
+                        <div>Mié</div>
+                        <div>Jue</div>
+                        <div>Vie</div>
+                        <div>Sáb</div>
+                        <div>Dom</div>
+                    </div>
+                    
+                    <div class="calendar-grid" id="calendar-grid">
+                        <!-- Los días del calendario se generarán con JavaScript -->
                     </div>
                 </div>
             </div>
@@ -486,28 +741,23 @@
                     <button class="btn" id="save-url-btn" style="margin-top: 10px;">
                         <i class="fas fa-save"></i> Guardar URL
                     </button>
-                    <button class="btn" id="test-url-btn" style="margin-top: 10px; background: #9c27b0;">
-                        <i class="fas fa-vial"></i> Probar URL
-                    </button>
                 </div>
                 
                 <div class="config-help">
-                    <p><strong>¿Cómo obtener esta URL correctamente?</strong></p>
+                    <p><strong>¿Cómo obtener esta URL?</strong></p>
                     <ol>
                         <li>Sube tu archivo "tareas.json" a GitHub</li>
                         <li>Abre el archivo en GitHub y haz clic en el botón "Raw"</li>
-                        <li><strong>Asegúrate de que la URL comience con "https://raw.githubusercontent.com/"</strong></li>
-                        <li>La URL NO debe terminar con ?raw=true (elimina esta parte si existe)</li>
+                        <li>Copia la URL de la barra de direcciones</li>
                         <li>Pégala aquí y haz clic en "Guardar URL"</li>
                     </ol>
-                    <p class="url-example">Ejemplo correcto: https://raw.githubusercontent.com/tuusuario/turepo/main/tareas.json</p>
-                    <p class="url-example" style="background: #ffebee; color: #c62828;">Ejemplo incorrecto: https://github.com/tuusuario/turepo/blob/main/tareas.json</p>
+                    <p class="url-example">Ejemplo: https://raw.githubusercontent.com/tuusuario/turepo/main/tareas.json</p>
                 </div>
             </div>
         </div>
         
         <footer>
-            <p>Sistema de Tareas con GitHub - Solución al error JSON.parse</p>
+            <p>Sistema de Tareas con Calendario - Visualiza y filtra tus tareas fácilmente</p>
         </footer>
     </div>
 
@@ -526,22 +776,46 @@
             const loadGithubBtn = document.getElementById('load-github-btn');
             const githubUrlInput = document.getElementById('github-url');
             const saveUrlBtn = document.getElementById('save-url-btn');
-            const testUrlBtn = document.getElementById('test-url-btn');
             const formTitle = document.getElementById('form-title');
-            const statusMessage = document.getElementById('status-message');
-            const autoFixBtn = document.getElementById('auto-fix-btn');
-            const createJsonBtn = document.getElementById('create-json-btn');
+            const listViewBtn = document.getElementById('list-view-btn');
+            const calendarViewBtn = document.getElementById('calendar-view-btn');
+            const listView = document.getElementById('list-view');
+            const calendarView = document.getElementById('calendar-view');
+            const calendarGrid = document.getElementById('calendar-grid');
+            const currentMonthElement = document.getElementById('current-month');
+            const prevMonthBtn = document.getElementById('prev-month');
+            const nextMonthBtn = document.getElementById('next-month');
+            const todayBtn = document.getElementById('today-btn');
+            const filterButtons = document.querySelectorAll('.filter-btn');
             
             // Estado de la aplicación
             let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
             let editingTaskId = null;
             let githubUrl = localStorage.getItem('githubUrl') || '';
+            let currentDate = new Date();
+            let currentMonth = currentDate.getMonth();
+            let currentYear = currentDate.getFullYear();
+            let currentCollaboratorFilter = 'all';
+            
+            // Nombres de meses en español
+            const monthNames = [
+                'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+            ];
+            
+            // Nombres de los colaboradores
+            const collaboratorNames = {
+                1: 'Colaborador 1',
+                2: 'Colaborador 2',
+                3: 'Colaborador 3'
+            };
             
             // Inicializar la aplicación
             function init() {
                 renderTasks();
                 setupEventListeners();
                 setCurrentDate();
+                renderCalendar();
                 
                 // Cargar URL de GitHub si existe
                 if (githubUrl) {
@@ -559,21 +833,88 @@
                 importFile.addEventListener('change', importTasks);
                 loadGithubBtn.addEventListener('click', loadFromGitHub);
                 saveUrlBtn.addEventListener('click', saveGithubUrl);
-                testUrlBtn.addEventListener('click', testGithubUrl);
-                autoFixBtn.addEventListener('click', autoFix);
-                createJsonBtn.addEventListener('click', createInitialJson);
+                
+                listViewBtn.addEventListener('click', () => switchView('list'));
+                calendarViewBtn.addEventListener('click', () => switchView('calendar'));
+                
+                prevMonthBtn.addEventListener('click', () => {
+                    currentMonth--;
+                    if (currentMonth < 0) {
+                        currentMonth = 11;
+                        currentYear--;
+                    }
+                    renderCalendar();
+                });
+                
+                nextMonthBtn.addEventListener('click', () => {
+                    currentMonth++;
+                    if (currentMonth > 11) {
+                        currentMonth = 0;
+                        currentYear++;
+                    }
+                    renderCalendar();
+                });
+                
+                todayBtn.addEventListener('click', () => {
+                    currentDate = new Date();
+                    currentMonth = currentDate.getMonth();
+                    currentYear = currentDate.getFullYear();
+                    renderCalendar();
+                });
+                
+                filterButtons.forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const collaborator = btn.dataset.collaborator;
+                        filterTasksByCollaborator(collaborator);
+                    });
+                });
             }
             
-            // Mostrar mensaje de estado
-            function showStatus(message, type) {
-                statusMessage.textContent = message;
-                statusMessage.className = 'status-message';
-                statusMessage.classList.add(type === 'success' ? 'status-success' : 'status-error');
-                statusMessage.style.display = 'block';
+            // Cambiar entre vista de lista y calendario
+            function switchView(view) {
+                if (view === 'list') {
+                    listView.style.display = 'block';
+                    calendarView.style.display = 'none';
+                    listViewBtn.classList.add('active');
+                    calendarViewBtn.classList.remove('active');
+                } else {
+                    listView.style.display = 'none';
+                    calendarView.style.display = 'block';
+                    listViewBtn.classList.remove('active');
+                    calendarViewBtn.classList.add('active');
+                    renderCalendar();
+                }
+            }
+            
+            // Filtrar tareas por colaborador
+            function filterTasksByCollaborator(collaborator) {
+                currentCollaboratorFilter = collaborator;
                 
-                setTimeout(() => {
-                    statusMessage.style.display = 'none';
-                }, 5000);
+                // Actualizar botones de filtro
+                filterButtons.forEach(btn => {
+                    if (btn.dataset.collaborator === collaborator) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+                
+                // Renderizar tareas filtradas
+                renderTasks();
+                
+                // Si estamos en vista de calendario, renderizar también
+                if (calendarView.style.display !== 'none') {
+                    renderCalendar();
+                }
+            }
+            
+            // Obtener tareas filtradas
+            function getFilteredTasks() {
+                if (currentCollaboratorFilter === 'all') {
+                    return tasks;
+                } else {
+                    return tasks.filter(task => task.collaborator === currentCollaboratorFilter);
+                }
             }
             
             // Establecer la fecha actual en el formulario
@@ -602,6 +943,7 @@
                 document.getElementById('task-title').value = '';
                 document.getElementById('task-description').value = '';
                 document.getElementById('task-priority').value = 'medium';
+                document.getElementById('task-collaborator').value = '1';
                 document.getElementById('task-status').value = 'pending';
                 setCurrentDate();
             }
@@ -612,10 +954,11 @@
                 const date = document.getElementById('task-date').value;
                 const description = document.getElementById('task-description').value.trim();
                 const priority = document.getElementById('task-priority').value;
+                const collaborator = document.getElementById('task-collaborator').value;
                 const status = document.getElementById('task-status').value;
                 
                 if (!title || !date) {
-                    showStatus('Por favor, complete al menos el título y la fecha de la tarea.', 'error');
+                    alert('Por favor, complete al menos el título y la fecha de la tarea.');
                     return;
                 }
                 
@@ -629,6 +972,7 @@
                             date,
                             description,
                             priority,
+                            collaborator,
                             status,
                             updatedAt: new Date().toISOString()
                         };
@@ -641,6 +985,7 @@
                         date,
                         description,
                         priority,
+                        collaborator,
                         status,
                         createdAt: new Date().toISOString(),
                         updatedAt: new Date().toISOString()
@@ -654,15 +999,19 @@
                 
                 // Actualizar interfaz
                 renderTasks();
+                renderCalendar();
                 hideTaskForm();
-                showStatus('Tarea guardada correctamente.', 'success');
+                
+                alert('Tarea guardada correctamente.');
             }
             
-            // Renderizar tareas
+            // Renderizar tareas en vista de lista
             function renderTasks() {
                 taskList.innerHTML = '';
                 
-                if (tasks.length === 0) {
+                const filteredTasks = getFilteredTasks();
+                
+                if (filteredTasks.length === 0) {
                     emptyState.style.display = 'block';
                     return;
                 }
@@ -670,11 +1019,11 @@
                 emptyState.style.display = 'none';
                 
                 // Ordenar tareas por fecha (más recientes primero)
-                const sortedTasks = [...tasks].sort((a, b) => new Date(b.date) - new Date(a.date));
+                const sortedTasks = [...filteredTasks].sort((a, b) => new Date(b.date) - new Date(a.date));
                 
                 sortedTasks.forEach(task => {
                     const taskElement = document.createElement('div');
-                    taskElement.className = `task-item priority-${task.priority}`;
+                    taskElement.className = `task-item priority-${task.priority} collaborator-${task.collaborator}`;
                     taskElement.dataset.id = task.id;
                     
                     const taskDate = new Date(task.date);
@@ -691,9 +1040,14 @@
                                 <h3 class="task-title">${task.title}</h3>
                                 <div class="task-date">${formattedDate}</div>
                             </div>
-                            <span class="task-priority priority-${task.priority}">
-                                ${task.priority === 'high' ? 'Alta' : task.priority === 'medium' ? 'Media' : 'Baja'}
-                            </span>
+                            <div>
+                                <span class="task-priority priority-${task.priority}">
+                                    ${task.priority === 'high' ? 'Alta' : task.priority === 'medium' ? 'Media' : 'Baja'}
+                                </span>
+                                <span class="task-collaborator collaborator-${task.collaborator}">
+                                    ${collaboratorNames[task.collaborator]}
+                                </span>
+                            </div>
                         </div>
                         <div class="task-actions">
                             <button class="edit-btn" data-id="${task.id}"><i class="fas fa-edit"></i></button>
@@ -722,6 +1076,107 @@
                 });
             }
             
+            // Renderizar calendario
+            function renderCalendar() {
+                // Actualizar el encabezado del mes
+                currentMonthElement.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+                
+                // Limpiar el grid del calendario
+                calendarGrid.innerHTML = '';
+                
+                // Obtener el primer día del mes y el último día del mes
+                const firstDay = new Date(currentYear, currentMonth, 1);
+                const lastDay = new Date(currentYear, currentMonth + 1, 0);
+                const daysInMonth = lastDay.getDate();
+                
+                // Obtener el día de la semana del primer día (0 = Domingo, 1 = Lunes, etc.)
+                let firstDayIndex = firstDay.getDay();
+                // Ajustar para que la semana comience en Lunes
+                firstDayIndex = firstDayIndex === 0 ? 6 : firstDayIndex - 1;
+                
+                // Obtener el último día del mes anterior
+                const prevLastDay = new Date(currentYear, currentMonth, 0).getDate();
+                
+                // Agregar días del mes anterior
+                for (let i = firstDayIndex; i > 0; i--) {
+                    const day = prevLastDay - i + 1;
+                    const date = new Date(currentYear, currentMonth - 1, day);
+                    calendarGrid.appendChild(createDayElement(day, date, true));
+                }
+                
+                // Agregar días del mes actual
+                const today = new Date();
+                const filteredTasks = getFilteredTasks();
+                
+                for (let i = 1; i <= daysInMonth; i++) {
+                    const date = new Date(currentYear, currentMonth, i);
+                    const isToday = date.toDateString() === today.toDateString();
+                    calendarGrid.appendChild(createDayElement(i, date, false, isToday, filteredTasks));
+                }
+                
+                // Calcular cuántos días del próximo mes necesitamos agregar
+                const totalCells = 42; // 6 semanas * 7 días
+                const remainingCells = totalCells - (firstDayIndex + daysInMonth);
+                
+                // Agregar días del próximo mes
+                for (let i = 1; i <= remainingCells; i++) {
+                    const date = new Date(currentYear, currentMonth + 1, i);
+                    calendarGrid.appendChild(createDayElement(i, date, true));
+                }
+            }
+            
+            // Crear elemento de día para el calendario
+            function createDayElement(day, date, isOtherMonth, isToday = false, tasksForMonth = []) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day';
+                
+                if (isOtherMonth) {
+                    dayElement.classList.add('other-month');
+                }
+                
+                if (isToday) {
+                    dayElement.classList.add('today');
+                }
+                
+                const dayNumber = document.createElement('div');
+                dayNumber.className = 'day-number';
+                dayNumber.textContent = day;
+                dayElement.appendChild(dayNumber);
+                
+                // Agregar tareas para este día
+                const dateString = date.toISOString().split('T')[0];
+                const tasksForDay = tasksForMonth.filter(task => task.date === dateString);
+                
+                if (tasksForDay.length > 0) {
+                    const tasksContainer = document.createElement('div');
+                    tasksContainer.className = 'tasks-container-cal';
+                    
+                    tasksForDay.forEach(task => {
+                        const taskElement = document.createElement('div');
+                        taskElement.className = `task-item-cal priority-${task.priority} collaborator-${task.collaborator}`;
+                        taskElement.dataset.taskId = task.id;
+                        
+                        const taskTitle = document.createElement('div');
+                        taskTitle.className = 'task-title';
+                        taskTitle.textContent = task.title.length > 15 ? task.title.substring(0, 15) + '...' : task.title;
+                        
+                        taskElement.appendChild(taskTitle);
+                        
+                        taskElement.addEventListener('click', () => {
+                            // Al hacer clic en una tarea del calendario, cambiar a vista de lista y editar
+                            switchView('list');
+                            editTask(task.id);
+                        });
+                        
+                        tasksContainer.appendChild(taskElement);
+                    });
+                    
+                    dayElement.appendChild(tasksContainer);
+                }
+                
+                return dayElement;
+            }
+            
             // Editar tarea
             function editTask(taskId) {
                 const task = tasks.find(task => task.id === taskId);
@@ -731,6 +1186,7 @@
                     document.getElementById('task-date').value = task.date;
                     document.getElementById('task-description').value = task.description || '';
                     document.getElementById('task-priority').value = task.priority;
+                    document.getElementById('task-collaborator').value = task.collaborator;
                     document.getElementById('task-status').value = task.status;
                     
                     editingTaskId = taskId;
@@ -745,7 +1201,7 @@
                     tasks = tasks.filter(task => task.id !== taskId);
                     saveTasksToStorage();
                     renderTasks();
-                    showStatus('Tarea eliminada correctamente.', 'success');
+                    renderCalendar();
                 }
             }
             
@@ -757,25 +1213,21 @@
             // Exportar tareas a un archivo JSON
             function exportTasks() {
                 if (tasks.length === 0) {
-                    showStatus('No hay tareas para exportar.', 'error');
+                    alert('No hay tareas para exportar.');
                     return;
                 }
                 
-                try {
-                    const dataStr = JSON.stringify(tasks, null, 2);
-                    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-                    
-                    const exportFileDefaultName = 'tareas.json';
-                    
-                    const linkElement = document.createElement('a');
-                    linkElement.setAttribute('href', dataUri);
-                    linkElement.setAttribute('download', exportFileDefaultName);
-                    linkElement.click();
-                    
-                    showStatus('Tareas exportadas correctamente. Ahora sube este archivo a GitHub.', 'success');
-                } catch (error) {
-                    showStatus('Error al exportar tareas: ' + error.message, 'error');
-                }
+                const dataStr = JSON.stringify(tasks, null, 2);
+                const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                
+                const exportFileDefaultName = 'tareas.json';
+                
+                const linkElement = document.createElement('a');
+                linkElement.setAttribute('href', dataUri);
+                linkElement.setAttribute('download', exportFileDefaultName);
+                linkElement.click();
+                
+                alert('Tareas exportadas correctamente. Ahora sube este archivo a GitHub.');
             }
             
             // Importar tareas desde un archivo JSON
@@ -792,12 +1244,13 @@
                             tasks = importedTasks;
                             saveTasksToStorage();
                             renderTasks();
-                            showStatus('Tareas importadas correctamente.', 'success');
+                            renderCalendar();
+                            alert('Tareas importadas correctamente.');
                         } else {
-                            showStatus('El archivo no contiene un formato válido de tareas.', 'error');
+                            alert('El archivo no contiene un formato válido de tareas.');
                         }
                     } catch (error) {
-                        showStatus('Error al importar el archivo: ' + error.message, 'error');
+                        alert('Error al importar el archivo: ' + error.message);
                     }
                 };
                 reader.readAsText(file);
@@ -811,135 +1264,42 @@
                 const url = githubUrlInput.value.trim();
                 
                 if (!url) {
-                    showStatus('Por favor, ingresa una URL válida.', 'error');
-                    return;
-                }
-                
-                // Verificar si es una URL de GitHub raw
-                if (!url.includes('raw.githubusercontent.com')) {
-                    showStatus('La URL debe ser una URL "raw" de GitHub. Haz clic en el botón "Raw" en GitHub y copia esa URL.', 'error');
+                    alert('Por favor, ingresa una URL válida.');
                     return;
                 }
                 
                 githubUrl = url;
                 localStorage.setItem('githubUrl', githubUrl);
-                showStatus('URL de GitHub guardada correctamente.', 'success');
-            }
-            
-            // Probar URL de GitHub
-            async function testGithubUrl() {
-                const url = githubUrlInput.value.trim();
-                
-                if (!url) {
-                    showStatus('Primero debes ingresar una URL.', 'error');
-                    return;
-                }
-                
-                try {
-                    showStatus('Probando conexión con GitHub...', 'success');
-                    
-                    const response = await fetch(url);
-                    
-                    if (!response.ok) {
-                        throw new Error(`Error ${response.status}: ${response.statusText}`);
-                    }
-                    
-                    const text = await response.text();
-                    
-                    if (!text.trim()) {
-                        throw new Error('El archivo está vacío. Sube un archivo JSON válido.');
-                    }
-                    
-                    try {
-                        JSON.parse(text);
-                        showStatus('¡Conexión exitosa! El archivo JSON es válido.', 'success');
-                    } catch (error) {
-                        showStatus('El archivo existe pero no es un JSON válido: ' + error.message, 'error');
-                    }
-                } catch (error) {
-                    showStatus('Error al conectar con GitHub: ' + error.message, 'error');
-                }
+                alert('URL de GitHub guardada correctamente.');
             }
             
             // Cargar tareas desde GitHub
             async function loadFromGitHub() {
                 if (!githubUrl) {
-                    showStatus('Primero debes configurar la URL de GitHub.', 'error');
+                    alert('Primero debes configurar la URL de GitHub.');
                     return;
                 }
                 
                 try {
-                    showStatus('Cargando tareas desde GitHub...', 'success');
-                    
                     const response = await fetch(githubUrl);
                     
                     if (!response.ok) {
-                        throw new Error(`Error ${response.status}: ${response.statusText}`);
+                        throw new Error('Error al cargar el archivo: ' + response.status);
                     }
                     
-                    const text = await response.text();
-                    
-                    if (!text.trim()) {
-                        throw new Error('El archivo está vacío. Exporta tus tareas primero y sube el archivo a GitHub.');
-                    }
-                    
-                    const tasksData = JSON.parse(text);
+                    const tasksData = await response.json();
                     
                     if (Array.isArray(tasksData)) {
                         tasks = tasksData;
                         saveTasksToStorage();
                         renderTasks();
-                        showStatus('Tareas cargadas desde GitHub correctamente.', 'success');
+                        renderCalendar();
+                        alert('Tareas cargadas desde GitHub correctamente.');
                     } else {
-                        showStatus('El archivo de GitHub no contiene un formato válido de tareas.', 'error');
+                        alert('El archivo de GitHub no contiene un formato válido de tareas.');
                     }
                 } catch (error) {
-                    showStatus('Error al cargar desde GitHub: ' + error.message, 'error');
-                }
-            }
-            
-            // Solucionar automáticamente
-            function autoFix() {
-                // Crear un archivo JSON inicial si no hay tareas
-                if (tasks.length === 0) {
-                    tasks = [{
-                        id: '1',
-                        title: 'Tarea de ejemplo',
-                        date: new Date().toISOString().split('T')[0],
-                        description: 'Esta es una tarea de ejemplo. Puedes editarla o eliminarla.',
-                        priority: 'medium',
-                        status: 'pending',
-                        createdAt: new Date().toISOString(),
-                        updatedAt: new Date().toISOString()
-                    }];
-                    saveTasksToStorage();
-                    renderTasks();
-                }
-                
-                // Sugerir exportar
-                exportTasks();
-                
-                showStatus('Se ha creado un archivo de ejemplo y se ha iniciado la exportación. Sube el archivo a GitHub.', 'success');
-            }
-            
-            // Crear JSON inicial
-            function createInitialJson() {
-                if (tasks.length === 0) {
-                    tasks = [{
-                        id: '1',
-                        title: 'Tarea de ejemplo',
-                        date: new Date().toISOString().split('T')[0],
-                        description: 'Esta es una tarea de ejemplo. Puedes editarla o eliminarla.',
-                        priority: 'medium',
-                        status: 'pending',
-                        createdAt: new Date().toISOString(),
-                        updatedAt: new Date().toISOString()
-                    }];
-                    saveTasksToStorage();
-                    renderTasks();
-                    showStatus('Se ha creado una tarea de ejemplo. Ahora exporta las tareas.', 'success');
-                } else {
-                    exportTasks();
+                    alert('Error al cargar desde GitHub: ' + error.message);
                 }
             }
             
