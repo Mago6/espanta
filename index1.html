@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tareas Sincronizadas con GitHub</title>
+    <title>Sistema de Tareas con GitHub - Solución de Errores</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -52,6 +52,22 @@
             padding: 30px;
         }
         
+        .error-section {
+            background: #fff8e1;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .error-title {
+            color: #ff9800;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
         .controls {
             display: flex;
             flex-wrap: wrap;
@@ -93,6 +109,14 @@
         
         .btn-github:hover {
             background: #555;
+        }
+        
+        .btn-fix {
+            background: #ff9800;
+        }
+        
+        .btn-fix:hover {
+            background: #f57c00;
         }
         
         .task-form {
@@ -309,6 +333,25 @@
             display: block;
         }
         
+        .status-message {
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            display: none;
+        }
+        
+        .status-success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #4caf50;
+        }
+        
+        .status-error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ef5350;
+        }
+        
         footer {
             text-align: center;
             padding: 20px;
@@ -336,11 +379,25 @@
 <body>
     <div class="container">
         <header>
-            <h1>Tareas Sincronizadas con GitHub</h1>
-            <p class="description">Guarda tus tareas en GitHub y accede a ellas desde cualquier dispositivo</p>
+            <h1>Sistema de Tareas con GitHub</h1>
+            <p class="description">Solución al error "JSON.parse: unexpected end of data"</p>
         </header>
         
         <div class="content">
+            <div class="error-section">
+                <h2 class="error-title"><i class="fas fa-exclamation-triangle"></i> Solución al Error de JSON</h2>
+                <p>El error <strong>"JSON.parse: unexpected end of data"</strong> ocurre cuando:</p>
+                <ul>
+                    <li>El archivo JSON en GitHub está vacío</li>
+                    <li>La URL de GitHub es incorrecta</li>
+                    <li>El archivo no existe en GitHub</li>
+                    <li>Hay problemas de conexión con GitHub</li>
+                </ul>
+                <button class="btn btn-fix" id="auto-fix-btn">
+                    <i class="fas fa-magic"></i> Solucionar Automáticamente
+                </button>
+            </div>
+            
             <div class="controls">
                 <button class="btn" id="new-task-btn">
                     <i class="fas fa-plus"></i> Nueva Tarea
@@ -354,10 +411,15 @@
                 <button class="btn btn-github" id="load-github-btn">
                     <i class="fab fa-github"></i> Cargar desde GitHub
                 </button>
+                <button class="btn btn-fix" id="create-json-btn">
+                    <i class="fas fa-file-code"></i> Crear JSON Inicial
+                </button>
                 <input type="file" id="import-file" accept=".json" style="display: none">
             </div>
             
-            <div class="task-form" id="task-form">
+            <div id="status-message" class="status-message"></div>
+            
+            <div class="task-form" id="task-form" style="display: none;">
                 <h2 class="form-title" id="form-title">Agregar Nueva Tarea</h2>
                 
                 <div class="form-row">
@@ -400,7 +462,7 @@
                 <button class="btn" id="save-task-btn">
                     <i class="fas fa-save"></i> Guardar Tarea
                 </button>
-                <button class="btn" id="cancel-btn" style="display: none; background: #777;">
+                <button class="btn" id="cancel-btn" style="background: #777;">
                     <i class="fas fa-times"></i> Cancelar
                 </button>
             </div>
@@ -424,23 +486,28 @@
                     <button class="btn" id="save-url-btn" style="margin-top: 10px;">
                         <i class="fas fa-save"></i> Guardar URL
                     </button>
+                    <button class="btn" id="test-url-btn" style="margin-top: 10px; background: #9c27b0;">
+                        <i class="fas fa-vial"></i> Probar URL
+                    </button>
                 </div>
                 
                 <div class="config-help">
-                    <p><strong>¿Cómo obtener esta URL?</strong></p>
+                    <p><strong>¿Cómo obtener esta URL correctamente?</strong></p>
                     <ol>
                         <li>Sube tu archivo "tareas.json" a GitHub</li>
                         <li>Abre el archivo en GitHub y haz clic en el botón "Raw"</li>
-                        <li>Copia la URL de la barra de direcciones</li>
+                        <li><strong>Asegúrate de que la URL comience con "https://raw.githubusercontent.com/"</strong></li>
+                        <li>La URL NO debe terminar con ?raw=true (elimina esta parte si existe)</li>
                         <li>Pégala aquí y haz clic en "Guardar URL"</li>
                     </ol>
-                    <p class="url-example">Ejemplo: https://raw.githubusercontent.com/tuusuario/turepo/main/tareas.json</p>
+                    <p class="url-example">Ejemplo correcto: https://raw.githubusercontent.com/tuusuario/turepo/main/tareas.json</p>
+                    <p class="url-example" style="background: #ffebee; color: #c62828;">Ejemplo incorrecto: https://github.com/tuusuario/turepo/blob/main/tareas.json</p>
                 </div>
             </div>
         </div>
         
         <footer>
-            <p>Tareas Sincronizadas con GitHub - Guarda tu archivo JSON en GitHub para acceder desde cualquier dispositivo</p>
+            <p>Sistema de Tareas con GitHub - Solución al error JSON.parse</p>
         </footer>
     </div>
 
@@ -459,7 +526,11 @@
             const loadGithubBtn = document.getElementById('load-github-btn');
             const githubUrlInput = document.getElementById('github-url');
             const saveUrlBtn = document.getElementById('save-url-btn');
+            const testUrlBtn = document.getElementById('test-url-btn');
             const formTitle = document.getElementById('form-title');
+            const statusMessage = document.getElementById('status-message');
+            const autoFixBtn = document.getElementById('auto-fix-btn');
+            const createJsonBtn = document.getElementById('create-json-btn');
             
             // Estado de la aplicación
             let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
@@ -488,6 +559,21 @@
                 importFile.addEventListener('change', importTasks);
                 loadGithubBtn.addEventListener('click', loadFromGitHub);
                 saveUrlBtn.addEventListener('click', saveGithubUrl);
+                testUrlBtn.addEventListener('click', testGithubUrl);
+                autoFixBtn.addEventListener('click', autoFix);
+                createJsonBtn.addEventListener('click', createInitialJson);
+            }
+            
+            // Mostrar mensaje de estado
+            function showStatus(message, type) {
+                statusMessage.textContent = message;
+                statusMessage.className = 'status-message';
+                statusMessage.classList.add(type === 'success' ? 'status-success' : 'status-error');
+                statusMessage.style.display = 'block';
+                
+                setTimeout(() => {
+                    statusMessage.style.display = 'none';
+                }, 5000);
             }
             
             // Establecer la fecha actual en el formulario
@@ -501,7 +587,6 @@
             function showTaskForm() {
                 taskForm.style.display = 'block';
                 newTaskBtn.style.display = 'none';
-                cancelBtn.style.display = 'inline-block';
                 formTitle.textContent = 'Agregar Nueva Tarea';
                 editingTaskId = null;
                 
@@ -512,7 +597,6 @@
             function hideTaskForm() {
                 taskForm.style.display = 'none';
                 newTaskBtn.style.display = 'inline-block';
-                cancelBtn.style.display = 'none';
                 
                 // Resetear formulario
                 document.getElementById('task-title').value = '';
@@ -531,7 +615,7 @@
                 const status = document.getElementById('task-status').value;
                 
                 if (!title || !date) {
-                    alert('Por favor, complete al menos el título y la fecha de la tarea.');
+                    showStatus('Por favor, complete al menos el título y la fecha de la tarea.', 'error');
                     return;
                 }
                 
@@ -571,6 +655,7 @@
                 // Actualizar interfaz
                 renderTasks();
                 hideTaskForm();
+                showStatus('Tarea guardada correctamente.', 'success');
             }
             
             // Renderizar tareas
@@ -660,6 +745,7 @@
                     tasks = tasks.filter(task => task.id !== taskId);
                     saveTasksToStorage();
                     renderTasks();
+                    showStatus('Tarea eliminada correctamente.', 'success');
                 }
             }
             
@@ -671,21 +757,25 @@
             // Exportar tareas a un archivo JSON
             function exportTasks() {
                 if (tasks.length === 0) {
-                    alert('No hay tareas para exportar.');
+                    showStatus('No hay tareas para exportar.', 'error');
                     return;
                 }
                 
-                const dataStr = JSON.stringify(tasks, null, 2);
-                const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-                
-                const exportFileDefaultName = 'tareas.json';
-                
-                const linkElement = document.createElement('a');
-                linkElement.setAttribute('href', dataUri);
-                linkElement.setAttribute('download', exportFileDefaultName);
-                linkElement.click();
-                
-                alert('Tareas exportadas correctamente. Ahora sube este archivo a GitHub.');
+                try {
+                    const dataStr = JSON.stringify(tasks, null, 2);
+                    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                    
+                    const exportFileDefaultName = 'tareas.json';
+                    
+                    const linkElement = document.createElement('a');
+                    linkElement.setAttribute('href', dataUri);
+                    linkElement.setAttribute('download', exportFileDefaultName);
+                    linkElement.click();
+                    
+                    showStatus('Tareas exportadas correctamente. Ahora sube este archivo a GitHub.', 'success');
+                } catch (error) {
+                    showStatus('Error al exportar tareas: ' + error.message, 'error');
+                }
             }
             
             // Importar tareas desde un archivo JSON
@@ -702,12 +792,12 @@
                             tasks = importedTasks;
                             saveTasksToStorage();
                             renderTasks();
-                            alert('Tareas importadas correctamente.');
+                            showStatus('Tareas importadas correctamente.', 'success');
                         } else {
-                            alert('El archivo no contiene un formato válido de tareas.');
+                            showStatus('El archivo no contiene un formato válido de tareas.', 'error');
                         }
                     } catch (error) {
-                        alert('Error al importar el archivo: ' + error.message);
+                        showStatus('Error al importar el archivo: ' + error.message, 'error');
                     }
                 };
                 reader.readAsText(file);
@@ -721,41 +811,135 @@
                 const url = githubUrlInput.value.trim();
                 
                 if (!url) {
-                    alert('Por favor, ingresa una URL válida.');
+                    showStatus('Por favor, ingresa una URL válida.', 'error');
+                    return;
+                }
+                
+                // Verificar si es una URL de GitHub raw
+                if (!url.includes('raw.githubusercontent.com')) {
+                    showStatus('La URL debe ser una URL "raw" de GitHub. Haz clic en el botón "Raw" en GitHub y copia esa URL.', 'error');
                     return;
                 }
                 
                 githubUrl = url;
                 localStorage.setItem('githubUrl', githubUrl);
-                alert('URL de GitHub guardada correctamente.');
+                showStatus('URL de GitHub guardada correctamente.', 'success');
+            }
+            
+            // Probar URL de GitHub
+            async function testGithubUrl() {
+                const url = githubUrlInput.value.trim();
+                
+                if (!url) {
+                    showStatus('Primero debes ingresar una URL.', 'error');
+                    return;
+                }
+                
+                try {
+                    showStatus('Probando conexión con GitHub...', 'success');
+                    
+                    const response = await fetch(url);
+                    
+                    if (!response.ok) {
+                        throw new Error(`Error ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    const text = await response.text();
+                    
+                    if (!text.trim()) {
+                        throw new Error('El archivo está vacío. Sube un archivo JSON válido.');
+                    }
+                    
+                    try {
+                        JSON.parse(text);
+                        showStatus('¡Conexión exitosa! El archivo JSON es válido.', 'success');
+                    } catch (error) {
+                        showStatus('El archivo existe pero no es un JSON válido: ' + error.message, 'error');
+                    }
+                } catch (error) {
+                    showStatus('Error al conectar con GitHub: ' + error.message, 'error');
+                }
             }
             
             // Cargar tareas desde GitHub
             async function loadFromGitHub() {
                 if (!githubUrl) {
-                    alert('Primero debes configurar la URL de GitHub.');
+                    showStatus('Primero debes configurar la URL de GitHub.', 'error');
                     return;
                 }
                 
                 try {
+                    showStatus('Cargando tareas desde GitHub...', 'success');
+                    
                     const response = await fetch(githubUrl);
                     
                     if (!response.ok) {
-                        throw new Error('Error al cargar el archivo: ' + response.status);
+                        throw new Error(`Error ${response.status}: ${response.statusText}`);
                     }
                     
-                    const tasksData = await response.json();
+                    const text = await response.text();
+                    
+                    if (!text.trim()) {
+                        throw new Error('El archivo está vacío. Exporta tus tareas primero y sube el archivo a GitHub.');
+                    }
+                    
+                    const tasksData = JSON.parse(text);
                     
                     if (Array.isArray(tasksData)) {
                         tasks = tasksData;
                         saveTasksToStorage();
                         renderTasks();
-                        alert('Tareas cargadas desde GitHub correctamente.');
+                        showStatus('Tareas cargadas desde GitHub correctamente.', 'success');
                     } else {
-                        alert('El archivo de GitHub no contiene un formato válido de tareas.');
+                        showStatus('El archivo de GitHub no contiene un formato válido de tareas.', 'error');
                     }
                 } catch (error) {
-                    alert('Error al cargar desde GitHub: ' + error.message);
+                    showStatus('Error al cargar desde GitHub: ' + error.message, 'error');
+                }
+            }
+            
+            // Solucionar automáticamente
+            function autoFix() {
+                // Crear un archivo JSON inicial si no hay tareas
+                if (tasks.length === 0) {
+                    tasks = [{
+                        id: '1',
+                        title: 'Tarea de ejemplo',
+                        date: new Date().toISOString().split('T')[0],
+                        description: 'Esta es una tarea de ejemplo. Puedes editarla o eliminarla.',
+                        priority: 'medium',
+                        status: 'pending',
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    }];
+                    saveTasksToStorage();
+                    renderTasks();
+                }
+                
+                // Sugerir exportar
+                exportTasks();
+                
+                showStatus('Se ha creado un archivo de ejemplo y se ha iniciado la exportación. Sube el archivo a GitHub.', 'success');
+            }
+            
+            // Crear JSON inicial
+            function createInitialJson() {
+                if (tasks.length === 0) {
+                    tasks = [{
+                        id: '1',
+                        title: 'Tarea de ejemplo',
+                        date: new Date().toISOString().split('T')[0],
+                        description: 'Esta es una tarea de ejemplo. Puedes editarla o eliminarla.',
+                        priority: 'medium',
+                        status: 'pending',
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    }];
+                    saveTasksToStorage();
+                    renderTasks();
+                    showStatus('Se ha creado una tarea de ejemplo. Ahora exporta las tareas.', 'success');
+                } else {
+                    exportTasks();
                 }
             }
             
