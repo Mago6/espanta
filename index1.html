@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tareas Sincronizadas con GitHub</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            color: #333;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .description {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+        
+        .btn {
+            padding: 12px 20px;
+            background: #2575fc;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            background: #1a67e8;
+            transform: translateY(-2px);
+        }
+        
+        .btn-export {
+            background: #0cbc87;
+        }
+        
+        .btn-export:hover {
+            background: #0aa073;
+        }
+        
+        .btn-github {
+            background: #333;
+        }
+        
+        .btn-github:hover {
+            background: #555;
+        }
+        
+        .task-form {
+            background: #f9fafc;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .form-title {
+            font-size: 1.4rem;
+            color: #2575fc;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e4e8f0;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #444;
+        }
+        
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .tasks-container {
+            margin-top: 30px;
+        }
+        
+        .tasks-title {
+            font-size: 1.4rem;
+            color: #2575fc;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e4e8f0;
+        }
+        
+        .task-list {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .task-item {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            border-left: 5px solid #2575fc;
+            position: relative;
+        }
+        
+        .task-item.priority-high {
+            border-left-color: #ff5252;
+        }
+        
+        .task-item.priority-medium {
+            border-left-color: #ffc107;
+        }
+        
+        .task-item.priority-low {
+            border-left-color: #4caf50;
+        }
+        
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .task-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2575fc;
+        }
+        
+        .task-date {
+            color: #777;
+            font-size: 0.9rem;
+        }
+        
+        .task-description {
+            color: #555;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        
+        .task-priority {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: #f0f4ff;
+            color: #2575fc;
+        }
+        
+        .priority-high {
+            background: #ffebee;
+            color: #ff5252;
+        }
+        
+        .priority-medium {
+            background: #fff8e1;
+            color: #ffc107;
+        }
+        
+        .priority-low {
+            background: #e8f5e9;
+            color: #4caf50;
+        }
+        
+        .task-actions {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .task-actions button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #999;
+            font-size: 1rem;
+            transition: color 0.3s ease;
+        }
+        
+        .task-actions button:hover {
+            color: #2575fc;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            color: #ddd;
+            margin-bottom: 15px;
+        }
+        
+        .empty-state p {
+            color: #888;
+            font-size: 1.1rem;
+        }
+        
+        .github-config {
+            background: #f9fafc;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .config-title {
+            font-size: 1.4rem;
+            color: #2575fc;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e4e8f0;
+        }
+        
+        .config-help {
+            background: #e6f0ff;
+            border-left: 4px solid #2575fc;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .url-example {
+            background: #f0f4ff;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 1rem;
+            display: block;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: #f5f7fa;
+            color: #777;
+        }
+        
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+            }
+            
+            .task-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .task-actions {
+                position: static;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Tareas Sincronizadas con GitHub</h1>
+            <p class="description">Guarda tus tareas en GitHub y accede a ellas desde cualquier dispositivo</p>
+        </header>
+        
+        <div class="content">
+            <div class="controls">
+                <button class="btn" id="new-task-btn">
+                    <i class="fas fa-plus"></i> Nueva Tarea
+                </button>
+                <button class="btn btn-export" id="export-btn">
+                    <i class="fas fa-download"></i> Exportar Tareas
+                </button>
+                <button class="btn" id="import-btn">
+                    <i class="fas fa-upload"></i> Importar Tareas
+                </button>
+                <button class="btn btn-github" id="load-github-btn">
+                    <i class="fab fa-github"></i> Cargar desde GitHub
+                </button>
+                <input type="file" id="import-file" accept=".json" style="display: none">
+            </div>
+            
+            <div class="task-form" id="task-form">
+                <h2 class="form-title" id="form-title">Agregar Nueva Tarea</h2>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="task-title">Título de la Tarea</label>
+                        <input type="text" id="task-title" placeholder="Ej: Revisar documentación">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="task-date">Fecha</label>
+                        <input type="date" id="task-date">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="task-description">Descripción</label>
+                    <textarea id="task-description" placeholder="Describe los detalles de la tarea..."></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="task-priority">Prioridad</label>
+                        <select id="task-priority">
+                            <option value="low">Baja</option>
+                            <option value="medium" selected>Media</option>
+                            <option value="high">Alta</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="task-status">Estado</label>
+                        <select id="task-status">
+                            <option value="pending" selected>Pendiente</option>
+                            <option value="in-progress">En Progreso</option>
+                            <option value="completed">Completada</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button class="btn" id="save-task-btn">
+                    <i class="fas fa-save"></i> Guardar Tarea
+                </button>
+                <button class="btn" id="cancel-btn" style="display: none; background: #777;">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+            </div>
+            
+            <div class="tasks-container">
+                <h2 class="tasks-title">Tus Tareas</h2>
+                <div class="task-list" id="task-list">
+                    <div class="empty-state" id="empty-state">
+                        <i class="fas fa-tasks"></i>
+                        <p>No hay tareas. ¡Agrega tu primera tarea!</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="github-config">
+                <h2 class="config-title">Configuración de GitHub</h2>
+                
+                <div class="form-group">
+                    <label for="github-url">URL del archivo en GitHub (raw)</label>
+                    <input type="text" id="github-url" placeholder="https://raw.githubusercontent.com/usuario/repo/main/tareas.json">
+                    <button class="btn" id="save-url-btn" style="margin-top: 10px;">
+                        <i class="fas fa-save"></i> Guardar URL
+                    </button>
+                </div>
+                
+                <div class="config-help">
+                    <p><strong>¿Cómo obtener esta URL?</strong></p>
+                    <ol>
+                        <li>Sube tu archivo "tareas.json" a GitHub</li>
+                        <li>Abre el archivo en GitHub y haz clic en el botón "Raw"</li>
+                        <li>Copia la URL de la barra de direcciones</li>
+                        <li>Pégala aquí y haz clic en "Guardar URL"</li>
+                    </ol>
+                    <p class="url-example">Ejemplo: https://raw.githubusercontent.com/tuusuario/turepo/main/tareas.json</p>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Tareas Sincronizadas con GitHub - Guarda tu archivo JSON en GitHub para acceder desde cualquier dispositivo</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Referencias a elementos del DOM
+            const taskForm = document.getElementById('task-form');
+            const taskList = document.getElementById('task-list');
+            const emptyState = document.getElementById('empty-state');
+            const newTaskBtn = document.getElementById('new-task-btn');
+            const saveTaskBtn = document.getElementById('save-task-btn');
+            const cancelBtn = document.getElementById('cancel-btn');
+            const exportBtn = document.getElementById('export-btn');
+            const importBtn = document.getElementById('import-btn');
+            const importFile = document.getElementById('import-file');
+            const loadGithubBtn = document.getElementById('load-github-btn');
+            const githubUrlInput = document.getElementById('github-url');
+            const saveUrlBtn = document.getElementById('save-url-btn');
+            const formTitle = document.getElementById('form-title');
+            
+            // Estado de la aplicación
+            let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+            let editingTaskId = null;
+            let githubUrl = localStorage.getItem('githubUrl') || '';
+            
+            // Inicializar la aplicación
+            function init() {
+                renderTasks();
+                setupEventListeners();
+                setCurrentDate();
+                
+                // Cargar URL de GitHub si existe
+                if (githubUrl) {
+                    githubUrlInput.value = githubUrl;
+                }
+            }
+            
+            // Configurar event listeners
+            function setupEventListeners() {
+                newTaskBtn.addEventListener('click', showTaskForm);
+                saveTaskBtn.addEventListener('click', saveTask);
+                cancelBtn.addEventListener('click', hideTaskForm);
+                exportBtn.addEventListener('click', exportTasks);
+                importBtn.addEventListener('click', () => importFile.click());
+                importFile.addEventListener('change', importTasks);
+                loadGithubBtn.addEventListener('click', loadFromGitHub);
+                saveUrlBtn.addEventListener('click', saveGithubUrl);
+            }
+            
+            // Establecer la fecha actual en el formulario
+            function setCurrentDate() {
+                const today = new Date();
+                const formattedDate = today.toISOString().split('T')[0];
+                document.getElementById('task-date').value = formattedDate;
+            }
+            
+            // Mostrar/ocultar formulario de tarea
+            function showTaskForm() {
+                taskForm.style.display = 'block';
+                newTaskBtn.style.display = 'none';
+                cancelBtn.style.display = 'inline-block';
+                formTitle.textContent = 'Agregar Nueva Tarea';
+                editingTaskId = null;
+                
+                // Scroll al formulario
+                taskForm.scrollIntoView({ behavior: 'smooth' });
+            }
+            
+            function hideTaskForm() {
+                taskForm.style.display = 'none';
+                newTaskBtn.style.display = 'inline-block';
+                cancelBtn.style.display = 'none';
+                
+                // Resetear formulario
+                document.getElementById('task-title').value = '';
+                document.getElementById('task-description').value = '';
+                document.getElementById('task-priority').value = 'medium';
+                document.getElementById('task-status').value = 'pending';
+                setCurrentDate();
+            }
+            
+            // Guardar tarea
+            function saveTask() {
+                const title = document.getElementById('task-title').value.trim();
+                const date = document.getElementById('task-date').value;
+                const description = document.getElementById('task-description').value.trim();
+                const priority = document.getElementById('task-priority').value;
+                const status = document.getElementById('task-status').value;
+                
+                if (!title || !date) {
+                    alert('Por favor, complete al menos el título y la fecha de la tarea.');
+                    return;
+                }
+                
+                if (editingTaskId) {
+                    // Editar tarea existente
+                    const taskIndex = tasks.findIndex(task => task.id === editingTaskId);
+                    if (taskIndex !== -1) {
+                        tasks[taskIndex] = {
+                            id: editingTaskId,
+                            title,
+                            date,
+                            description,
+                            priority,
+                            status,
+                            updatedAt: new Date().toISOString()
+                        };
+                    }
+                } else {
+                    // Agregar nueva tarea
+                    const newTask = {
+                        id: Date.now().toString(),
+                        title,
+                        date,
+                        description,
+                        priority,
+                        status,
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    };
+                    
+                    tasks.push(newTask);
+                }
+                
+                // Guardar en localStorage
+                saveTasksToStorage();
+                
+                // Actualizar interfaz
+                renderTasks();
+                hideTaskForm();
+            }
+            
+            // Renderizar tareas
+            function renderTasks() {
+                taskList.innerHTML = '';
+                
+                if (tasks.length === 0) {
+                    emptyState.style.display = 'block';
+                    return;
+                }
+                
+                emptyState.style.display = 'none';
+                
+                // Ordenar tareas por fecha (más recientes primero)
+                const sortedTasks = [...tasks].sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                sortedTasks.forEach(task => {
+                    const taskElement = document.createElement('div');
+                    taskElement.className = `task-item priority-${task.priority}`;
+                    taskElement.dataset.id = task.id;
+                    
+                    const taskDate = new Date(task.date);
+                    const formattedDate = taskDate.toLocaleDateString('es-ES', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                    
+                    taskElement.innerHTML = `
+                        <div class="task-header">
+                            <div>
+                                <h3 class="task-title">${task.title}</h3>
+                                <div class="task-date">${formattedDate}</div>
+                            </div>
+                            <span class="task-priority priority-${task.priority}">
+                                ${task.priority === 'high' ? 'Alta' : task.priority === 'medium' ? 'Media' : 'Baja'}
+                            </span>
+                        </div>
+                        <div class="task-actions">
+                            <button class="edit-btn" data-id="${task.id}"><i class="fas fa-edit"></i></button>
+                            <button class="delete-btn" data-id="${task.id}"><i class="fas fa-trash"></i></button>
+                        </div>
+                        <p class="task-description">${task.description || 'Sin descripción'}</p>
+                        <span class="task-status">Estado: ${task.status === 'pending' ? 'Pendiente' : task.status === 'in-progress' ? 'En Progreso' : 'Completada'}</span>
+                    `;
+                    
+                    taskList.appendChild(taskElement);
+                });
+                
+                // Agregar event listeners a los botones de editar y eliminar
+                document.querySelectorAll('.edit-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const taskId = e.currentTarget.dataset.id;
+                        editTask(taskId);
+                    });
+                });
+                
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const taskId = e.currentTarget.dataset.id;
+                        deleteTask(taskId);
+                    });
+                });
+            }
+            
+            // Editar tarea
+            function editTask(taskId) {
+                const task = tasks.find(task => task.id === taskId);
+                
+                if (task) {
+                    document.getElementById('task-title').value = task.title;
+                    document.getElementById('task-date').value = task.date;
+                    document.getElementById('task-description').value = task.description || '';
+                    document.getElementById('task-priority').value = task.priority;
+                    document.getElementById('task-status').value = task.status;
+                    
+                    editingTaskId = taskId;
+                    formTitle.textContent = 'Editar Tarea';
+                    showTaskForm();
+                }
+            }
+            
+            // Eliminar tarea
+            function deleteTask(taskId) {
+                if (confirm('¿Estás seguro de que quieres eliminar esta tarea?')) {
+                    tasks = tasks.filter(task => task.id !== taskId);
+                    saveTasksToStorage();
+                    renderTasks();
+                }
+            }
+            
+            // Guardar tareas en el almacenamiento local
+            function saveTasksToStorage() {
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+            }
+            
+            // Exportar tareas a un archivo JSON
+            function exportTasks() {
+                if (tasks.length === 0) {
+                    alert('No hay tareas para exportar.');
+                    return;
+                }
+                
+                const dataStr = JSON.stringify(tasks, null, 2);
+                const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+                
+                const exportFileDefaultName = 'tareas.json';
+                
+                const linkElement = document.createElement('a');
+                linkElement.setAttribute('href', dataUri);
+                linkElement.setAttribute('download', exportFileDefaultName);
+                linkElement.click();
+                
+                alert('Tareas exportadas correctamente. Ahora sube este archivo a GitHub.');
+            }
+            
+            // Importar tareas desde un archivo JSON
+            function importTasks(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const importedTasks = JSON.parse(e.target.result);
+                        
+                        if (Array.isArray(importedTasks)) {
+                            tasks = importedTasks;
+                            saveTasksToStorage();
+                            renderTasks();
+                            alert('Tareas importadas correctamente.');
+                        } else {
+                            alert('El archivo no contiene un formato válido de tareas.');
+                        }
+                    } catch (error) {
+                        alert('Error al importar el archivo: ' + error.message);
+                    }
+                };
+                reader.readAsText(file);
+                
+                // Resetear el input de archivo
+                event.target.value = '';
+            }
+            
+            // Guardar URL de GitHub
+            function saveGithubUrl() {
+                const url = githubUrlInput.value.trim();
+                
+                if (!url) {
+                    alert('Por favor, ingresa una URL válida.');
+                    return;
+                }
+                
+                githubUrl = url;
+                localStorage.setItem('githubUrl', githubUrl);
+                alert('URL de GitHub guardada correctamente.');
+            }
+            
+            // Cargar tareas desde GitHub
+            async function loadFromGitHub() {
+                if (!githubUrl) {
+                    alert('Primero debes configurar la URL de GitHub.');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(githubUrl);
+                    
+                    if (!response.ok) {
+                        throw new Error('Error al cargar el archivo: ' + response.status);
+                    }
+                    
+                    const tasksData = await response.json();
+                    
+                    if (Array.isArray(tasksData)) {
+                        tasks = tasksData;
+                        saveTasksToStorage();
+                        renderTasks();
+                        alert('Tareas cargadas desde GitHub correctamente.');
+                    } else {
+                        alert('El archivo de GitHub no contiene un formato válido de tareas.');
+                    }
+                } catch (error) {
+                    alert('Error al cargar desde GitHub: ' + error.message);
+                }
+            }
+            
+            // Inicializar la aplicación
+            init();
+        });
+    </script>
+</body>
+</html>
