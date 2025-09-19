@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Tareas con Calendario</title>
+    <title>Sistema de Tareas con Control de Tiempos</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -407,6 +407,17 @@
             border-left-color: #0cbc87;
         }
         
+        .task-item.delayed {
+            border-left-color: #ff5252;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 4px 10px rgba(255, 82, 82, 0.2); }
+            50% { box-shadow: 0 4px 15px rgba(255, 82, 82, 0.4); }
+            100% { box-shadow: 0 4px 10px rgba(255, 82, 82, 0.2); }
+        }
+        
         .task-header {
             display: flex;
             justify-content: space-between;
@@ -480,6 +491,41 @@
         .collaborator-3 {
             background: #e6f7f0;
             color: #0cbc87;
+        }
+        
+        .time-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        
+        .time-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .time-label {
+            font-size: 0.75rem;
+            color: #777;
+            margin-bottom: 5px;
+        }
+        
+        .time-value {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .time-value.delayed {
+            color: #ff5252;
+        }
+        
+        .time-value.ontime {
+            color: #4caf50;
         }
         
         .task-actions {
@@ -581,14 +627,19 @@
             .calendar-day {
                 min-height: 100px;
             }
+            
+            .time-info {
+                flex-direction: column;
+                gap: 8px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Sistema de Tareas con Calendario</h1>
-            <p class="description">Visualiza tus tareas en formato de lista o calendario y filtra por colaborador</p>
+            <h1>Sistema de Tareas con Control de Tiempos</h1>
+            <p class="description">Gestiona períodos de tareas, calcula tiempos y detecta retrasos automáticamente</p>
         </header>
         
         <div class="content">
@@ -642,10 +693,17 @@
                             <label for="task-title">Título de la Tarea</label>
                             <input type="text" id="task-title" placeholder="Ej: Revisar documentación">
                         </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="task-start-date">Fecha de Inicio</label>
+                            <input type="date" id="task-start-date">
+                        </div>
                         
                         <div class="form-group">
-                            <label for="task-date">Fecha</label>
-                            <input type="date" id="task-date">
+                            <label for="task-end-date">Fecha de Término</label>
+                            <input type="date" id="task-end-date">
                         </div>
                     </div>
                     
@@ -757,7 +815,7 @@
         </div>
         
         <footer>
-            <p>Sistema de Tareas con Calendario - Visualiza y filtra tus tareas fácilmente</p>
+            <p>Sistema de Tareas con Control de Tiempos - Calcula automáticamente días transcurridos y retrasos</p>
         </footer>
     </div>
 
@@ -807,14 +865,14 @@
             const collaboratorNames = {
                 1: 'Colaborador 1',
                 2: 'Colaborador 2',
-                3: 'Colaborador 3'
+                3: 'Colaborator 3'
             };
             
             // Inicializar la aplicación
             function init() {
                 renderTasks();
                 setupEventListeners();
-                setCurrentDate();
+                setCurrentDates();
                 renderCalendar();
                 
                 // Cargar URL de GitHub si existe
@@ -917,11 +975,75 @@
                 }
             }
             
-            // Establecer la fecha actual en el formulario
-            function setCurrentDate() {
+            // Establecer las fechas actuales en el formulario
+            function setCurrentDates() {
                 const today = new Date();
                 const formattedDate = today.toISOString().split('T')[0];
-                document.getElementById('task-date').value = formattedDate;
+                
+                // Fecha de inicio hoy
+                document.getElementById('task-start-date').value = formattedDate;
+                
+                // Fecha de término en 7 días
+                const nextWeek = new Date();
+                nextWeek.setDate(today.getDate() + 7);
+                const formattedNextWeek = nextWeek.toISOString().split('T')[0];
+                document.getElementById('task-end-date').value = formattedNextWeek;
+            }
+            
+            // Calcular diferencia en días entre dos fechas
+            function dateDiffInDays(date1, date2) {
+                const oneDay = 24 * 60 * 60 * 1000; // horas*minutos*segundos*milisegundos
+                const firstDate = new Date(date1);
+                const secondDate = new Date(date2);
+                
+                // Resetear horas para comparar solo fechas
+                firstDate.setHours(0, 0, 0, 0);
+                secondDate.setHours(0, 0, 0, 0);
+                
+                const diffDays = Math.round(Math.abs((firstDate - secondDate) / oneDay));
+                return diffDays;
+            }
+            
+            // Calcular información de tiempos para una tarea
+            function calculateTimeInfo(task) {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                const startDate = new Date(task.startDate);
+                startDate.setHours(0, 0, 0, 0);
+                
+                const endDate = new Date(task.endDate);
+                endDate.setHours(0, 0, 0, 0);
+                
+                const daysTotal = dateDiffInDays(task.startDate, task.endDate);
+                let daysElapsed = dateDiffInDays(task.startDate, today);
+                let daysRemaining = dateDiffInDays(today, task.endDate);
+                let delayed = false;
+                
+                // Ajustar días transcurridos y restantes
+                if (today < startDate) {
+                    daysElapsed = 0;
+                    daysRemaining = daysTotal;
+                } else if (today > endDate) {
+                    daysElapsed = daysTotal;
+                    daysRemaining = 0;
+                    delayed = task.status !== 'completed';
+                } else {
+                    daysElapsed = dateDiffInDays(task.startDate, today);
+                    daysRemaining = dateDiffInDays(today, task.endDate);
+                }
+                
+                // Verificar si hay retraso
+                if (today > endDate && task.status !== 'completed') {
+                    delayed = true;
+                }
+                
+                return {
+                    daysTotal,
+                    daysElapsed,
+                    daysRemaining,
+                    delayed
+                };
             }
             
             // Mostrar/ocultar formulario de tarea
@@ -945,20 +1067,26 @@
                 document.getElementById('task-priority').value = 'medium';
                 document.getElementById('task-collaborator').value = '1';
                 document.getElementById('task-status').value = 'pending';
-                setCurrentDate();
+                setCurrentDates();
             }
             
             // Guardar tarea
             function saveTask() {
                 const title = document.getElementById('task-title').value.trim();
-                const date = document.getElementById('task-date').value;
+                const startDate = document.getElementById('task-start-date').value;
+                const endDate = document.getElementById('task-end-date').value;
                 const description = document.getElementById('task-description').value.trim();
                 const priority = document.getElementById('task-priority').value;
                 const collaborator = document.getElementById('task-collaborator').value;
                 const status = document.getElementById('task-status').value;
                 
-                if (!title || !date) {
-                    alert('Por favor, complete al menos el título y la fecha de la tarea.');
+                if (!title || !startDate || !endDate) {
+                    alert('Por favor, complete al menos el título y las fechas de la tarea.');
+                    return;
+                }
+                
+                if (new Date(startDate) > new Date(endDate)) {
+                    alert('La fecha de inicio no puede ser posterior a la fecha de término.');
                     return;
                 }
                 
@@ -967,9 +1095,10 @@
                     const taskIndex = tasks.findIndex(task => task.id === editingTaskId);
                     if (taskIndex !== -1) {
                         tasks[taskIndex] = {
-                            id: editingTaskId,
+                            ...tasks[taskIndex],
                             title,
-                            date,
+                            startDate,
+                            endDate,
                             description,
                             priority,
                             collaborator,
@@ -982,7 +1111,8 @@
                     const newTask = {
                         id: Date.now().toString(),
                         title,
-                        date,
+                        startDate,
+                        endDate,
                         description,
                         priority,
                         collaborator,
@@ -1019,15 +1149,31 @@
                 emptyState.style.display = 'none';
                 
                 // Ordenar tareas por fecha (más recientes primero)
-                const sortedTasks = [...filteredTasks].sort((a, b) => new Date(b.date) - new Date(a.date));
+                const sortedTasks = [...filteredTasks].sort((a, b) => new Date(b.startDate) - new Date(a.startDate));
                 
                 sortedTasks.forEach(task => {
+                    const timeInfo = calculateTimeInfo(task);
+                    
                     const taskElement = document.createElement('div');
                     taskElement.className = `task-item priority-${task.priority} collaborator-${task.collaborator}`;
+                    
+                    if (timeInfo.delayed) {
+                        taskElement.classList.add('delayed');
+                    }
+                    
                     taskElement.dataset.id = task.id;
                     
-                    const taskDate = new Date(task.date);
-                    const formattedDate = taskDate.toLocaleDateString('es-ES', {
+                    const startDateObj = new Date(task.startDate);
+                    const endDateObj = new Date(task.endDate);
+                    
+                    const formattedStartDate = startDateObj.toLocaleDateString('es-ES', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                    
+                    const formattedEndDate = endDateObj.toLocaleDateString('es-ES', {
                         weekday: 'long',
                         year: 'numeric',
                         month: 'long',
@@ -1038,7 +1184,7 @@
                         <div class="task-header">
                             <div>
                                 <h3 class="task-title">${task.title}</h3>
-                                <div class="task-date">${formattedDate}</div>
+                                <div class="task-date">${formattedStartDate} - ${formattedEndDate}</div>
                             </div>
                             <div>
                                 <span class="task-priority priority-${task.priority}">
@@ -1055,6 +1201,23 @@
                         </div>
                         <p class="task-description">${task.description || 'Sin descripción'}</p>
                         <span class="task-status">Estado: ${task.status === 'pending' ? 'Pendiente' : task.status === 'in-progress' ? 'En Progreso' : 'Completada'}</span>
+                        
+                        <div class="time-info">
+                            <div class="time-item">
+                                <span class="time-label">Días totales</span>
+                                <span class="time-value">${timeInfo.daysTotal}</span>
+                            </div>
+                            <div class="time-item">
+                                <span class="time-label">Días transcurridos</span>
+                                <span class="time-value">${timeInfo.daysElapsed}</span>
+                            </div>
+                            <div class="time-item">
+                                <span class="time-label">Días restantes</span>
+                                <span class="time-value ${timeInfo.delayed ? 'delayed' : 'ontime'}">
+                                    ${timeInfo.delayed ? 'RETRASO: ' : ''}${timeInfo.daysRemaining}
+                                </span>
+                            </div>
+                        </div>
                     `;
                     
                     taskList.appendChild(taskElement);
@@ -1145,20 +1308,43 @@
                 
                 // Agregar tareas para este día
                 const dateString = date.toISOString().split('T')[0];
-                const tasksForDay = tasksForMonth.filter(task => task.date === dateString);
+                const tasksForDay = tasksForMonth.filter(task => 
+                    task.startDate === dateString || 
+                    task.endDate === dateString ||
+                    (new Date(task.startDate) <= date && new Date(task.endDate) >= date)
+                );
                 
                 if (tasksForDay.length > 0) {
                     const tasksContainer = document.createElement('div');
                     tasksContainer.className = 'tasks-container-cal';
                     
                     tasksForDay.forEach(task => {
+                        const timeInfo = calculateTimeInfo(task);
+                        const isStartDate = task.startDate === dateString;
+                        const isEndDate = task.endDate === dateString;
+                        
                         const taskElement = document.createElement('div');
                         taskElement.className = `task-item-cal priority-${task.priority} collaborator-${task.collaborator}`;
+                        if (timeInfo.delayed) {
+                            taskElement.style.borderLeftColor = '#ff5252';
+                        }
                         taskElement.dataset.taskId = task.id;
                         
                         const taskTitle = document.createElement('div');
                         taskTitle.className = 'task-title';
-                        taskTitle.textContent = task.title.length > 15 ? task.title.substring(0, 15) + '...' : task.title;
+                        
+                        let titleText = task.title;
+                        if (titleText.length > 12) {
+                            titleText = titleText.substring(0, 12) + '...';
+                        }
+                        
+                        if (isStartDate) {
+                            taskTitle.innerHTML = `<i class="fas fa-play-circle"></i> ${titleText}`;
+                        } else if (isEndDate) {
+                            taskTitle.innerHTML = `<i class="fas fa-flag-checkered"></i> ${titleText}`;
+                        } else {
+                            taskTitle.textContent = titleText;
+                        }
                         
                         taskElement.appendChild(taskTitle);
                         
@@ -1183,7 +1369,8 @@
                 
                 if (task) {
                     document.getElementById('task-title').value = task.title;
-                    document.getElementById('task-date').value = task.date;
+                    document.getElementById('task-start-date').value = task.startDate;
+                    document.getElementById('task-end-date').value = task.endDate;
                     document.getElementById('task-description').value = task.description || '';
                     document.getElementById('task-priority').value = task.priority;
                     document.getElementById('task-collaborator').value = task.collaborator;
