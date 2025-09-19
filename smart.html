@@ -1,0 +1,806 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Generador SMART — Objetivos claros</title>
+  <style>
+    :root {
+      --bg: #0f1724;
+      --card: #0b1220;
+      --accent: #06b6d4;
+      --accent-dark: #0891b2;
+      --muted: #94a3b8;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --glass: rgba(255, 255, 255, 0.03);
+      --transition: all 0.2s ease;
+    }
+    
+    * {
+      box-sizing: border-box;
+      font-family: Inter, Segoe UI, Roboto, system-ui, Arial;
+    }
+    
+    body {
+      margin: 0;
+      background: linear-gradient(180deg, #021026 0%, #081425 60%);
+      color: #e6eef6;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 28px;
+      line-height: 1.5;
+    }
+    
+    .wrap {
+      width: 100%;
+      max-width: 1080px;
+    }
+    
+    header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    
+    header h1 {
+      font-size: 24px;
+      margin: 0;
+      background: linear-gradient(90deg, #06b6d4, #7c3aed);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .header-sub {
+      color: var(--muted);
+      font-size: 14px;
+      margin-top: 4px;
+    }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 24px;
+    }
+    
+    .card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 6px 30px rgba(2, 6, 23, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      transition: var(--transition);
+    }
+    
+    .card:hover {
+      box-shadow: 0 8px 40px rgba(2, 6, 23, 0.9);
+    }
+    
+    label {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+    
+    .input-container {
+      position: relative;
+      margin-bottom: 16px;
+    }
+    
+    textarea, input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: var(--glass);
+      color: inherit;
+      resize: vertical;
+      transition: var(--transition);
+      font-size: 14px;
+    }
+    
+    textarea:focus, input[type="text"]:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);
+    }
+    
+    textarea {
+      min-height: 80px;
+    }
+    
+    .row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    
+    .small {
+      width: 140px;
+    }
+    
+    button {
+      background: var(--accent);
+      color: #022;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    button:hover {
+      background: var(--accent-dark);
+      transform: translateY(-1px);
+    }
+    
+    button.ghost {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--muted);
+    }
+    
+    button.ghost:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: #e6eef6;
+    }
+    
+    .preview {
+      white-space: pre-wrap;
+      background: linear-gradient(180deg, rgba(6, 182, 212, 0.04), transparent);
+      padding: 16px;
+      border-radius: 8px;
+      border: 1px dashed rgba(255, 255, 255, 0.05);
+      min-height: 140px;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    
+    .meter {
+      height: 10px;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 12px;
+      margin-bottom: 8px;
+    }
+    
+    .meter > i {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, #06b6d4, #7c3aed);
+      width: 0%;
+      transition: width 0.5s ease;
+    }
+    
+    .tags {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    
+    .chip {
+      background: rgba(255, 255, 255, 0.03);
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 500;
+    }
+    
+    .chip.valid {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--success);
+    }
+    
+    .chip.invalid {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--error);
+    }
+    
+    footer {
+      margin-top: 20px;
+      text-align: right;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    
+    .examples {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .example {
+      background: rgba(255, 255, 255, 0.02);
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: var(--transition);
+    }
+    
+    .example:hover {
+      border-color: rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.04);
+    }
+    
+    .example-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: #e6eef6;
+    }
+    
+    .example-desc {
+      font-size: 13px;
+      color: var(--muted);
+    }
+    
+    .progress-text {
+      font-size: 13px;
+      color: var(--muted);
+      text-align: right;
+      margin-top: 4px;
+    }
+    
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+    
+    .save-load-container {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    
+    .save-input {
+      flex: 1;
+    }
+    
+    .char-count {
+      position: absolute;
+      right: 10px;
+      bottom: 10px;
+      font-size: 11px;
+      color: var(--muted);
+      background: var(--card);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    
+    .validation-icon {
+      position: absolute;
+      right: 12px;
+      top: 12px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+    }
+    
+    .valid-icon {
+      background: var(--success);
+      color: white;
+    }
+    
+    .invalid-icon {
+      background: var(--error);
+      color: white;
+    }
+    
+    @media (max-width: 968px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .row {
+        flex-direction: column;
+      }
+      
+      .small {
+        width: 100%;
+      }
+    }
+    
+    /* Toast notification */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      background: var(--card);
+      color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 1000;
+      border-left: 4px solid var(--accent);
+    }
+    
+    .toast.visible {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    
+    .toast-success {
+      border-left-color: var(--success);
+    }
+    
+    .toast-error {
+      border-left-color: var(--error);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="1" y="1" width="22" height="22" rx="6" fill="#052025"/>
+        <path d="M7 12h10M7 8h10M7 16h6" stroke="#06b6d4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div>
+        <h1>Generador de Objetivos SMART</h1>
+        <div class="header-sub">Crea objetivos claros, medibles y alcanzables. Rellena y valida cada criterio.</div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <section class="card">
+        <div style="display:flex;gap:8px;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <strong>Rellena cada criterio SMART</strong>
+          <div style="display:flex;gap:8px">
+            <button id="autofill" class="ghost">
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+              Ejemplo
+            </button>
+            <button id="limpiar" class="ghost">
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 6h18M10 10v8M14 10v8M5 6l1 14a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2l1-14M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+              Limpiar
+            </button>
+          </div>
+        </div>
+
+        <div style="display:grid;gap:16px">
+          <div class="input-container">
+            <label>Específico (S) — ¿Qué quieres lograr exactamente?</label>
+            <textarea id="s" placeholder="Ej: Crear una app móvil para gestionar clientes con funciones básicas de CRM..."></textarea>
+            <div class="char-count"><span id="s-count">0</span>/120</div>
+          </div>
+
+          <div class="input-container">
+            <label>Medible (M) — ¿Cómo medirás el progreso y el éxito?</label>
+            <textarea id="m" placeholder="Ej: Alcanzar 50 usuarios registrados y obtener al menos 10 feedbacks positivos..."></textarea>
+            <div class="char-count"><span id="m-count">0</span>/120</div>
+          </div>
+
+          <div class="row">
+            <div class="input-container" style="flex:1">
+              <label>Alcanzable (A) — ¿Con qué recursos cuentas?</label>
+              <textarea id="a" placeholder="Ej: 2 desarrolladores, 4 semanas de trabajo, presupuesto de $10,000 MXN..."></textarea>
+              <div class="char-count"><span id="a-count">0</span>/120</div>
+            </div>
+            <div class="input-container" style="width:160px">
+              <label>Relevante (R) — ¿Por qué es importante?</label>
+              <input id="r" type="text" placeholder="Ej: Mejora la eficiencia..." />
+              <div class="char-count"><span id="r-count">0</span>/60</div>
+            </div>
+          </div>
+
+          <div class="input-container">
+            <label>Tiempo (T) — ¿Cuál es la fecha límite?</label>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input id="t" type="text" placeholder="Ej: 15 de octubre de 2025" style="flex:1" />
+              <button id="generar">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                Generar
+              </button>
+            </div>
+          </div>
+
+          <div class="save-load-container">
+            <input type="text" id="save-name" class="save-input" placeholder="Nombre para guardar este objetivo" />
+            <button id="guardar" class="ghost">
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 21V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2z"/><path d="M12 3v10"/><path d="M9 6h6"/></svg>
+              Guardar
+            </button>
+            <button id="cargar" class="ghost">
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+              Cargar
+            </button>
+          </div>
+
+          <div class="action-buttons">
+            <button id="copiar">
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M15 2H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"/></svg>
+              Copiar
+            </button>
+            <button id="descargar" class="ghost">
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+              Descargar TXT
+            </button>
+            <button id="exportpdf" class="ghost">
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h8"/><path d="M8 9h1"/></svg>
+              Exportar PDF
+            </button>
+          </div>
+
+          <div style="margin-top:12px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+              <label>Previsualización del objetivo SMART</label>
+              <div class="progress-text">Completado: <span id="progress-value">0</span>%</div>
+            </div>
+            <div class="preview" id="preview">Aquí aparecerá tu objetivo SMART generado. Completa los campos para ver la previsualización.</div>
+            <div class="meter" aria-hidden><i id="meterFill"></i></div>
+            <div class="tags" id="tags"></div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="card">
+        <strong>Plantillas y ejemplos</strong>
+        <div class="examples" style="margin-top:16px">
+          <div class="example" data-s="Lanzar versión beta de la app móvil de gestión de clientes" data-m="50 usuarios registrados y 10 feedbacks positivos" data-a="2 desarrolladores, 4 semanas, $10,000 MXN" data-r="Mejora la eficiencia del negocio y reduce tiempos de gestión" data-t="15 de octubre de 2025">
+            <div class="example-title">App móvil — MVP en 4 semanas</div>
+            <div class="example-desc">Desarrollo ágil de aplicación con funciones básicas</div>
+          </div>
+          <div class="example" data-s="Publicar curso online de 4 módulos sobre marketing digital" data-m="50 alumnos pagados con rating de 4+ estrellas" data-a="Equipo de 1 instructor + 1 editor, presupuesto $5,000 MXN" data-r="Generar ingreso recurrente y establecer reputación como experto" data-t="30 de noviembre de 2025">
+            <div class="example-title">Curso online — 50 alumnos</div>
+            <div class="example-desc">Creación y lanzamiento de curso digital</div>
+          </div>
+          <div class="example" data-s="Montar servicio de escaneo de seguridad para pymes" data-m="Realizar 10 escaneos pagados el primer mes" data-a="1 técnico + script automatizado, $0 inversión inicial" data-r="Fuente de ingresos rápida que aprovecha conocimientos existentes" data-t="30 días desde la publicación">
+            <div class="example-title">Servicio de seguridad — 10 clientes</div>
+            <div class="example-desc">Servicio consultivo con herramientas existentes</div>
+          </div>
+        </div>
+
+        <hr style="border:none;border-top:1px solid rgba(255,255,255,0.04);margin:16px 0">
+        
+        <strong>Indicadores de validación</strong>
+        <div style="margin-top:12px;color:var(--muted);font-size:13px">
+          Esta herramienta valida que cada criterio contenga texto relevante y proporciona retroalimentación visual sobre la calidad de cada componente.
+        </div>
+
+        <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px">
+          <div><span class="chip">S: Específico</span> Define claramente qué quieres lograr, sin ambigüedades.</div>
+          <div><span class="chip">M: Medible</span> Incluye métricas concretas para evaluar el progreso.</div>
+          <div><span class="chip">A: Alcanzable</span> Describe los recursos necesarios y su disponibilidad.</div>
+          <div><span class="chip">R: Relevante</span> Explica cómo se alinea con tus objetivos generales.</div>
+          <div><span class="chip">T: Tiempo</span> Establece una fecha límite realista y definida.</div>
+        </div>
+
+        <footer>
+          <div style="font-size:12px; margin-top: 16px;">
+            Hecho con ❤️ — herramienta offline. Puedes guardar el archivo HTML y usarlo sin conexión a internet.
+          </div>
+        </footer>
+      </aside>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    // Helpers
+    const $ = id => document.getElementById(id);
+    const s = $('s'), m = $('m'), a = $('a'), r = $('r'), t = $('t');
+    const preview = $('preview'), meter = $('meterFill'), tags = $('tags');
+    const progressValue = $('progress-value');
+    const toast = $('toast');
+
+    function showToast(message, type = '') {
+      toast.textContent = message;
+      toast.className = 'toast';
+      if (type) toast.classList.add(`toast-${type}`);
+      toast.classList.add('visible');
+      
+      setTimeout(() => {
+        toast.classList.remove('visible');
+      }, 3000);
+    }
+
+    function updateCharCount(element, countElement, max) {
+      const count = element.value.length;
+      countElement.textContent = count;
+      
+      if (count > max * 0.8) {
+        countElement.style.color = 'var(--warning)';
+      } else if (count > max) {
+        countElement.style.color = 'var(--error)';
+      } else {
+        countElement.style.color = 'var(--muted)';
+      }
+    }
+
+    function validateField(element, minLength = 10) {
+      return element.value.trim().length >= minLength;
+    }
+
+    function scoreCompleteness() {
+      let score = 0;
+      const fields = [s, m, a, r, t];
+      const weights = [25, 25, 20, 15, 15]; // Different weights for each field
+      
+      fields.forEach((el, index) => { 
+        if (validateField(el)) {
+          score += weights[index];
+          // Bonus for more detailed responses
+          if (el.value.trim().length > 60) score += 5;
+        }
+      });
+      
+      score = Math.min(100, score);
+      meter.style.width = score + '%';
+      progressValue.textContent = score;
+      
+      // Color changes based on score
+      if (score < 40) {
+        meter.style.background = 'linear-gradient(90deg, #ef4444, #f59e0b)';
+      } else if (score < 70) {
+        meter.style.background = 'linear-gradient(90deg, #f59e0b, #06b6d4)';
+      } else {
+        meter.style.background = 'linear-gradient(90deg, #06b6d4, #10b981)';
+      }
+      
+      return score;
+    }
+
+    function generarObjetivo() {
+      const S = s.value.trim(), M = m.value.trim(), A = a.value.trim(), R = r.value.trim(), T = t.value.trim();
+      
+      if (!S && !M && !A && !R && !T) { 
+        preview.textContent = 'Completa al menos un criterio para generar el objetivo.'; 
+        return;
+      }
+      
+      // Compose human-friendly sentence
+      let sentence = `OBJETIVO: ${S || '[Especificar meta]'}\n\n`;
+      if (M) sentence += `MEDICIÓN: ${M}\n`;
+      if (A) sentence += `RECURSOS: ${A}\n`;
+      if (R) sentence += `RELEVANCIA: ${R}\n`;
+      if (T) sentence += `PLAZO: ${T}\n`;
+
+      preview.textContent = sentence;
+
+      // Update tags with validation status
+      tags.innerHTML = '';
+      const criteria = [
+        { key: 'S', value: S, valid: validateField(s) },
+        { key: 'M', value: M, valid: validateField(m) },
+        { key: 'A', value: A, valid: validateField(a) },
+        { key: 'R', value: R, valid: validateField(r, 5) },
+        { key: 'T', value: T, valid: validateField(t, 5) }
+      ];
+      
+      criteria.forEach(criterion => {
+        const chip = document.createElement('span');
+        chip.className = `chip ${criterion.valid ? 'valid' : 'invalid'}`;
+        chip.innerHTML = `${criterion.key}: ${criterion.valid ? '✓' : '✗'}`;
+        tags.appendChild(chip);
+      });
+      
+      scoreCompleteness();
+    }
+
+    // Initialize character counters
+    const sCount = $('s-count'), mCount = $('m-count'), aCount = $('a-count'), rCount = $('r-count');
+    
+    // Events for character counting
+    s.addEventListener('input', () => {
+      updateCharCount(s, sCount, 120);
+      generarObjetivo();
+    });
+    
+    m.addEventListener('input', () => {
+      updateCharCount(m, mCount, 120);
+      generarObjetivo();
+    });
+    
+    a.addEventListener('input', () => {
+      updateCharCount(a, aCount, 120);
+      generarObjetivo();
+    });
+    
+    r.addEventListener('input', () => {
+      updateCharCount(r, rCount, 60);
+      generarObjetivo();
+    });
+    
+    t.addEventListener('input', generarObjetivo);
+    
+    $('generar').addEventListener('click', generarObjetivo);
+
+    $('limpiar').addEventListener('click', () => { 
+      [s, m, a, r, t].forEach(x => {
+        x.value = '';
+        $(`${x.id}-count`).textContent = '0';
+      });
+      generarObjetivo();
+      showToast('Formulario limpiado', 'success');
+    });
+
+    // Autofill examples
+    document.querySelectorAll('.example').forEach(e => {
+      e.addEventListener('click', () => {
+        s.value = e.dataset.s;
+        m.value = e.dataset.m;
+        a.value = e.dataset.a;
+        r.value = e.dataset.r;
+        t.value = e.dataset.t;
+        
+        // Update character counts
+        updateCharCount(s, sCount, 120);
+        updateCharCount(m, mCount, 120);
+        updateCharCount(a, aCount, 120);
+        updateCharCount(r, rCount, 60);
+        
+        generarObjetivo();
+        showToast('Ejemplo cargado', 'success');
+      });
+    });
+
+    // Copy to clipboard
+    $('copiar').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(preview.textContent);
+        showToast('Objetivo copiado al portapapeles', 'success');
+      } catch(e) {
+        showToast('No se pudo copiar. Selecciona y copia manualmente.', 'error');
+      }
+    });
+
+    // Download txt
+    $('descargar').addEventListener('click', () => {
+      const blob = new Blob([preview.textContent], {type: 'text/plain;charset=utf-8'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'objetivo_smart.txt';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      showToast('Archivo descargado', 'success');
+    });
+
+    // Export PDF (simple)
+    $('exportpdf').addEventListener('click', () => {
+      const w = window.open('', '_blank');
+      const html = `
+        <!doctype html>
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <title>Objetivo SMART</title>
+            <style>
+              body { font-family: Arial, sans-serif; padding: 40px; line-height: 1.6; }
+              h1 { color: #06b6d4; }
+              pre { white-space: pre-wrap; background: #f5f5f5; padding: 20px; border-radius: 8px; }
+            </style>
+          </head>
+          <body>
+            <h1>Objetivo SMART</h1>
+            <pre>${escapeHtml(preview.textContent)}</pre>
+          </body>
+        </html>
+      `;
+      w.document.write(html);
+      w.document.close();
+      w.print();
+      showToast('PDF listo para imprimir', 'success');
+    });
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // Autofill quick
+    $('autofill').addEventListener('click', () => {
+      s.value = 'Tener lista la versión beta de la app móvil con login y gestión de clientes';
+      m.value = '50 usuarios registrados, 10 feedbacks positivos con rating de 4+ estrellas';
+      a.value = '2 desarrolladores, 4 semanas de trabajo, presupuesto de $10,000 MXN';
+      r.value = 'Reduce tiempos de gestión y aumenta ingresos mediante mejor servicio';
+      t.value = '15 de octubre de 2025';
+      
+      // Update character counts
+      updateCharCount(s, sCount, 120);
+      updateCharCount(m, mCount, 120);
+      updateCharCount(a, aCount, 120);
+      updateCharCount(r, rCount, 60);
+      
+      generarObjetivo();
+      showToast('Ejemplo cargado', 'success');
+    });
+
+    // Save and load functionality
+    $('guardar').addEventListener('click', () => {
+      const name = $('save-name').value.trim();
+      if (!name) {
+        showToast('Ingresa un nombre para guardar', 'error');
+        return;
+      }
+      
+      const objective = {
+        s: s.value,
+        m: m.value,
+        a: a.value,
+        r: r.value,
+        t: t.value,
+        timestamp: new Date().toISOString()
+      };
+      
+      localStorage.setItem(`smart_${name}`, JSON.stringify(objective));
+      showToast(`Objetivo "${name}" guardado`, 'success');
+    });
+
+    $('cargar').addEventListener('click', () => {
+      const name = $('save-name').value.trim();
+      if (!name) {
+        showToast('Ingresa el nombre del objetivo a cargar', 'error');
+        return;
+      }
+      
+      const saved = localStorage.getItem(`smart_${name}`);
+      if (!saved) {
+        showToast(`No se encontró objetivo con nombre "${name}"`, 'error');
+        return;
+      }
+      
+      try {
+        const objective = JSON.parse(saved);
+        s.value = objective.s;
+        m.value = objective.m;
+        a.value = objective.a;
+        r.value = objective.r;
+        t.value = objective.t;
+        
+        // Update character counts
+        updateCharCount(s, sCount, 120);
+        updateCharCount(m, mCount, 120);
+        updateCharCount(a, aCount, 120);
+        updateCharCount(r, rCount, 60);
+        
+        generarObjetivo();
+        showToast(`Objetivo "${name}" cargado`, 'success');
+      } catch (e) {
+        showToast('Error al cargar el objetivo', 'error');
+      }
+    });
+
+    // Initialize
+    generarObjetivo();
+    
+    // Set up initial character counts
+    updateCharCount(s, sCount, 120);
+    updateCharCount(m, mCount, 120);
+    updateCharCount(a, aCount, 120);
+    updateCharCount(r, rCount, 60);
+  </script>
+</body>
+</html>
