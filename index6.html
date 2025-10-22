@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>25 Plantas - Dashboard con imágenes</title>
+<title>25 Plantas - Vertical Calendar</title>
 <style>
 body { font-family: Arial; background:#f0fff0; padding:20px; }
 h2 { text-align:center; margin-bottom:20px; }
@@ -14,26 +14,25 @@ h2 { text-align:center; margin-bottom:20px; }
 .info-panel { width:300px; background:#fff; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1); padding:10px; display:flex; flex-direction:column; gap:5px; }
 .info-item { display:flex; justify-content:space-between; }
 select, input { width:100px; text-align:right; border-radius:4px; border:1px solid #ccc; padding:2px 4px; }
-.mini-calendar { width:100%; display:grid; grid-template-columns: repeat(7, 1fr); gap:2px; margin-top:5px; font-size:10px; }
-.day-box { width:30px; height:30px; display:flex; align-items:center; justify-content:center; border-radius:3px; color:#fff; font-weight:bold; cursor:pointer; }
+.vertical-calendar { display:grid; grid-template-rows: repeat(12, 30px); gap:2px; margin-top:10px; font-size:12px; }
+.week-box { display:flex; align-items:center; justify-content:center; border-radius:3px; color:#fff; font-weight:bold; cursor:pointer; }
 .germinacion { background:#a5d6a7; }
 .plantula { background:#66bb6a; }
 .vegetativo { background:#2e7d32; }
 .floracion_media { background:#ffb74d; color:#000; }
 .floracion_final { background:#f57c00; }
 .cosecha { background:#8d6e63; }
-.current-day { border:2px solid #000; }
+.current-week { border:2px solid #000; }
 button { margin-top:5px; padding:5px; border-radius:4px; border:none; background:#2e7d32; color:white; cursor:pointer; font-size:12px; }
 #dashboard { display:none; margin-top:20px; }
 .dashboard-grid { display:grid; grid-template-columns: repeat(5, 1fr); gap:10px; }
 .plant-card { padding:5px; border-radius:6px; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,0.1); text-align:center; font-size:12px; display:flex; flex-direction:column; align-items:center; }
 .plant-card img { width:80px; height:60px; object-fit:contain; border-radius:4px; margin-bottom:5px; }
-.month-label { grid-column: span 7; text-align:center; font-weight:bold; margin-top:5px; }
 </style>
 </head>
 <body>
 
-<h2>25 Plantas - Dashboard con imágenes</h2>
+<h2>25 Plantas - Vertical Calendar</h2>
 
 <div class="selection-panel">
   <label>Planta:</label>
@@ -66,7 +65,7 @@ button { margin-top:5px; padding:5px; border-radius:4px; border:none; background
     <div class="info-item"><label>K:</label><input type="number" id="kInput"></div>
     <button id="updateBtn">Actualizar Datos</button>
     <button id="saveBtn">Guardar Historial</button>
-    <div id="miniCalendar" class="mini-calendar"></div>
+    <div id="verticalCalendar" class="vertical-calendar"></div>
   </div>
 </div>
 
@@ -85,7 +84,7 @@ const heightInput=document.getElementById('heightInput');
 const nInput=document.getElementById('nInput');
 const pInput=document.getElementById('pInput');
 const kInput=document.getElementById('kInput');
-const miniCalendar=document.getElementById('miniCalendar');
+const verticalCalendar=document.getElementById('verticalCalendar');
 const startDateInput=document.getElementById('startDate');
 const dashboard=document.getElementById('dashboard');
 const dashboardGrid=document.getElementById('dashboardGrid');
@@ -93,7 +92,6 @@ const dashboardGrid=document.getElementById('dashboardGrid');
 let startDateValue=new Date();
 let plantsData={};
 let currentPlant='Planta01';
-const today=new Date();
 
 // Inicializar plantas y combobox
 for(let i=1;i<=NUM_PLANTS;i++){
@@ -103,75 +101,75 @@ for(let i=1;i<=NUM_PLANTS;i++){
 }
 for(let i=1;i<=12;i++){ const option=document.createElement('option'); option.value=i; option.textContent=i; weekSelect.appendChild(option); }
 
-function randomRange(min,max){ return Math.round(min+Math.random()*(max-min)); }
-function getStage(week){ if(week<=1) return 'Germinación'; if(week<=3) return 'Plántula'; if(week<=7) return 'Vegetativo'; if(week===8||week===9) return 'Floración media'; if(week<=11) return 'Floración final / Maduración'; return 'Cosecha'; }
-function getStageClass(stage){ switch(stage){ case'Germinación':return'germinacion'; case'Plántula':return'plantula'; case'Vegetativo':return'vegetativo'; case'Floración media':return'floracion_media'; case'Floración final / Maduración':return'floracion_final'; case'Cosecha':return'cosecha'; } }
-
-function generateMiniCalendar(plantId){
-  miniCalendar.innerHTML='';
-  const data=plantsData[plantId];
-  let date=new Date(startDateValue);
-  for(let m=0;m<6;m++){
-    const monthLabel=document.createElement('div'); monthLabel.className='month-label';
-    monthLabel.textContent=date.toLocaleString('default',{month:'long',year:'numeric'});
-    miniCalendar.appendChild(monthLabel);
-
-    const firstDay=new Date(date.getFullYear(),date.getMonth(),1).getDay();
-    for(let i=0;i<firstDay;i++){ const empty=document.createElement('div'); empty.className='day-box'; miniCalendar.appendChild(empty); }
-
-    const lastDay=new Date(date.getFullYear(),date.getMonth()+1,0).getDate();
-    for(let d=1;d<=lastDay;d++){
-      const currentDay=new Date(date.getFullYear(),date.getMonth(),d);
-      const diffDays=Math.floor((currentDay-startDateValue)/(1000*60*60*24));
-      let week=Math.floor(diffDays/7)+1;
-      if(week<1) week=1; if(week>12) week=12;
-      const dayBox=document.createElement('div');
-      dayBox.className='day-box '+getStageClass(getStage(week));
-      dayBox.textContent=d;
-      if(currentDay.toDateString()===new Date().toDateString()) dayBox.classList.add('current-day');
-      dayBox.title=`Semana ${week} - ${getStage(week)}\n${currentDay.toLocaleDateString()}`;
-      dayBox.onclick=()=>{ loadWeek(plantId, week); };
-      miniCalendar.appendChild(dayBox);
-    }
-    date.setMonth(date.getMonth()+1);
+function getStage(week){
+  if(week<=1) return 'Germinación';
+  if(week<=3) return 'Plántula';
+  if(week<=7) return 'Vegetativo';
+  if(week===8||week===9) return 'Floración media';
+  if(week<=11) return 'Floración final / Maduración';
+  return 'Cosecha';
+}
+function getStageClass(stage){
+  switch(stage){
+    case'Germinación':return'germinacion';
+    case'Plántula':return'plantula';
+    case'Vegetativo':return'vegetativo';
+    case'Floración media':return'floracion_media';
+    case'Floración final / Maduración':return'floracion_final';
+    case'Cosecha':return'cosecha';
   }
 }
 
+// Genera calendario vertical por semanas
+function generateVerticalCalendar(plantId){
+  verticalCalendar.innerHTML='';
+  const data=plantsData[plantId];
+  for(let w=1;w<=12;w++){
+    const box=document.createElement('div');
+    box.className='week-box '+getStageClass(getStage(w));
+    box.textContent='Semana '+w;
+    if(w===data.week) box.classList.add('current-week');
+    box.onclick=()=>{ loadWeek(plantId,w); };
+    verticalCalendar.appendChild(box);
+  }
+}
+
+// Carga datos de semana/planta
 function loadWeek(plantId,week){
   const data=plantsData[plantId];
-  data.week=week; data.stage=getStage(week);
-  if(data.height===0){ data.height=randomRange(1,45); data.nutrients={n:randomRange(0,50),p:randomRange(0,30),k:randomRange(0,40)}; }
-  weekSelect.value=data.week; stageSelect.value=data.stage;
-  heightInput.value=data.height; nInput.value=data.nutrients.n; pInput.value=data.nutrients.p; kInput.value=data.nutrients.k;
+  data.week=week;
+  data.stage=getStage(week);
+  if(data.height===0) data.height=Math.floor(Math.random()*45)+1;
+  if(!data.nutrients) data.nutrients={n:10,p:10,k:10};
+  weekSelect.value=data.week;
+  stageSelect.value=data.stage;
+  heightInput.value=data.height;
+  nInput.value=data.nutrients.n;
+  pInput.value=data.nutrients.p;
+  kInput.value=data.nutrients.k;
   plantImg.src=`week${String(data.week).padStart(2,'0')}.webp`;
-  generateMiniCalendar(plantId);
+  generateVerticalCalendar(plantId);
   localStorage.setItem(plantId,JSON.stringify(data));
 }
 
-function loadPlant(plantId){ currentPlant=plantId; const data=plantsData[plantId]; loadWeek(plantId,data.week); }
+function loadPlant(plantId){ currentPlant=plantId; loadWeek(plantId,plantsData[plantId].week); }
 
-weekSelect.addEventListener('change',()=>{ loadWeek(currentPlant,parseInt(weekSelect.value)); });
+// Eventos
 plantSelect.addEventListener('change',()=>loadPlant(plantSelect.value));
-
+weekSelect.addEventListener('change',()=>loadWeek(currentPlant,parseInt(weekSelect.value)));
 document.getElementById('updateBtn').addEventListener('click',()=>{
   const data=plantsData[currentPlant];
   data.height=parseFloat(heightInput.value);
   data.nutrients={n:parseFloat(nInput.value),p:parseFloat(pInput.value),k:parseFloat(kInput.value)};
-  loadWeek(currentPlant,data.week); // actualiza combobox de etapa y mini calendario
+  loadWeek(currentPlant,data.week);
 });
-
 document.getElementById('saveBtn').addEventListener('click',()=>{
   const data=plantsData[currentPlant];
   data.history.push({date:new Date().toISOString(), week:data.week, stage:data.stage, height:data.height, nutrients:{...data.nutrients}});
   localStorage.setItem(currentPlant,JSON.stringify(data));
   alert(`Historial guardado para ${currentPlant}`);
 });
-
-document.getElementById('applyStart').addEventListener('click',()=>{
-  startDateValue=new Date(startDateInput.value);
-  generateMiniCalendar(currentPlant);
-});
-
+document.getElementById('applyStart').addEventListener('click',()=>{ startDateValue=new Date(startDateInput.value); generateVerticalCalendar(currentPlant); });
 document.getElementById('showDashboard').addEventListener('click',()=>{
   dashboard.style.display='block';
   dashboardGrid.innerHTML='';
