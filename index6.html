@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>25 Plantas - Seguimiento Diario</title>
+<title>25 Plantas - Calendario y Etapas</title>
 <style>
 body { font-family: Arial; background:#000; color:#f00; padding:20px; }
 h2 { text-align:center; margin-bottom:20px; color:#f00; }
@@ -21,8 +21,10 @@ select, input { width:120px; text-align:right; border-radius:4px; border:1px sol
 button { margin-top:5px; padding:5px; border-radius:4px; border:1px solid #f00; background:#000; color:#f00; cursor:pointer; font-size:12px; }
 button:hover { background:#f00; color:#000; }
 
-#calendarContainer { margin-top:10px; display:grid; grid-template-columns: repeat(7,1fr); gap:4px; }
-.day-box { width:60px; height:60px; display:flex; flex-direction:column; justify-content:center; align-items:center; border-radius:6px; font-size:12px; cursor:pointer; border:1px solid #f00; background:#111; color:#f00; }
+#calendarContainer { margin-top:10px; display:flex; flex-direction:column; gap:5px; overflow-x:auto; }
+.month-row { display:flex; gap:2px; flex-wrap:wrap; align-items:center; }
+.month-label { width:50px; font-weight:bold; display:flex; align-items:center; justify-content:center; color:#f00; }
+.day-box { width:40px; height:40px; display:flex; justify-content:center; align-items:center; border-radius:4px; font-size:10px; cursor:pointer; border:1px solid #f00; background:#111; color:#f00; }
 .current-day { border:2px solid #f00; background:#f00; color:#000; }
 .stage-germinacion { background:#550000; }
 .stage-plantula { background:#770000; }
@@ -39,7 +41,7 @@ button:hover { background:#f00; color:#000; }
 </head>
 <body>
 
-<h2>25 Plantas - Seguimiento Diario</h2>
+<h2>25 Plantas - Calendario y Etapas</h2>
 
 <div class="selection-panel">
   <label>Planta:</label>
@@ -57,7 +59,7 @@ button:hover { background:#f00; color:#000; }
   </select>
   <label>Fecha inicio:</label>
   <input type="date" id="startDate">
-  <button id="applyStart">Aplicar</button>
+  <button id="updateBtn">Actualizar y Guardar Planta</button>
   <button id="showDashboard">Ver todas las plantas</button>
 </div>
 
@@ -70,8 +72,6 @@ button:hover { background:#f00; color:#000; }
     <div class="info-item"><label>N:</label><input type="number" id="nInput"></div>
     <div class="info-item"><label>P:</label><input type="number" id="pInput"></div>
     <div class="info-item"><label>K:</label><input type="number" id="kInput"></div>
-    <button id="updateBtn">Actualizar Datos</button>
-    <button id="saveBtn">Guardar Historial</button>
     <div id="calendarContainer"></div>
     <div id="remainingDays"></div>
   </div>
@@ -137,30 +137,55 @@ function calculateWeek(start){
   return Math.min(Math.max(Math.floor(diff/7)+1,1),12);
 }
 
-// Generar calendario diario (30 días) desde inicio
+// Generar calendario mensual tipo pared (todos los días del mes)
 function generateCalendar(plantId){
   calendarContainer.innerHTML='';
   const data=plantsData[plantId];
-  for(let i=0;i<30;i++){
-    const dayBox=document.createElement('div');
-    const weekNum=Math.min(Math.floor(i/7)+1,12);
-    dayBox.className='day-box '+getStageClass(weekNum);
-    dayBox.textContent='D'+(i+1);
-    if(weekNum===data.week) dayBox.classList.add('current-day');
-    dayBox.onclick=()=>{
-      data.week=weekNum;
-      data.stage=getStageName(weekNum);
-      weekInput.value=weekNum;
-      stageSelect.value=data.stage;
-      plantImg.src=`week${String(weekNum).padStart(2,'0')}.webp`;
-      savePlantData(currentPlant);
-      generateCalendar(currentPlant);
-    };
-    calendarContainer.appendChild(dayBox);
+  const start=new Date(data.startDate);
+  let date=new Date(start);
+  let monthStart=date.getMonth();
+  let monthYear=date.getFullYear();
+  let monthDays=[];
+
+  for(let i=0;i<365;i++){ // un año completo
+    if(date.getMonth()!==monthStart){
+      // renderizar mes anterior
+      const monthRow=document.createElement('div'); monthRow.className='month-row';
+      const monthLabel=document.createElement('div'); monthLabel.className='month-label';
+      monthLabel.textContent=new Date(monthYear, monthStart).toLocaleString('es-ES',{month:'short'});
+      monthRow.appendChild(monthLabel);
+      monthDays.forEach(d=>{
+        const box=document.createElement('div'); box.className='day-box '+getStageClass(d.week);
+        box.textContent=d.day;
+        if(d.week===data.week) box.classList.add('current-day');
+        monthRow.appendChild(box);
+      });
+      calendarContainer.appendChild(monthRow);
+      monthDays=[];
+      monthStart=date.getMonth();
+      monthYear=date.getFullYear();
+    }
+    const weekNum=Math.min(Math.floor((date-start)/(1000*60*60*24*7))+1,12);
+    monthDays.push({day:date.getDate(), week:weekNum});
+    date.setDate(date.getDate()+1);
+  }
+  // último mes
+  if(monthDays.length>0){
+    const monthRow=document.createElement('div'); monthRow.className='month-row';
+    const monthLabel=document.createElement('div'); monthLabel.className='month-label';
+    monthLabel.textContent=new Date(monthYear, monthStart).toLocaleString('es-ES',{month:'short'});
+    monthRow.appendChild(monthLabel);
+    monthDays.forEach(d=>{
+      const box=document.createElement('div'); box.className='day-box '+getStageClass(d.week);
+      box.textContent=d.day;
+      if(d.week===plantsData[plantId].week) box.classList.add('current-day');
+      monthRow.appendChild(box);
+    });
+    calendarContainer.appendChild(monthRow);
   }
 }
 
-// Guardar en JSON localStorage
+// Guardar datos en JSON
 function savePlantData(id){
   localStorage.setItem(id, JSON.stringify(plantsData[id]));
 }
@@ -170,41 +195,44 @@ function loadPlant(id){
   currentPlant=id;
   const data=plantsData[id];
   startDateInput.value=data.startDate;
-  weekInput.value=data.week;
+  weekInput.value=calculateWeek(data.startDate);
+  data.week=weekInput.value;
+  data.stage=getStageName(data.week);
   stageSelect.value=data.stage;
   plantImg.src=`week${String(data.week).padStart(2,'0')}.webp`;
   heightInput.value=data.height;
   nInput.value=data.nutrients.n;
   pInput.value=data.nutrients.p;
   kInput.value=data.nutrients.k;
-  remainingDaysDiv.textContent=`Semanas restantes hasta cosecha: ${Math.max(12-data.week,0)}`;
+
+  const remaining=Math.max(12-data.week,0);
+  remainingDaysDiv.textContent=`Semanas restantes hasta cosecha: ${remaining}`;
+
   generateCalendar(id);
-  savePlantData(id);
 }
 
-// Actualizar datos
+// Botón actualizar/guardar
 document.getElementById('updateBtn').addEventListener('click',()=>{
   const data=plantsData[currentPlant];
+  data.startDate=startDateInput.value;
+  data.week=parseInt(weekInput.value);
+  data.stage=stageSelect.value;
   data.height=parseFloat(heightInput.value);
   data.nutrients={n:parseFloat(nInput.value),p:parseFloat(pInput.value),k:parseFloat(kInput.value)};
+  data.history.push({date:new Date().toISOString(), week:data.week, stage:data.stage, height:data.height, nutrients:{...data.nutrients}});
   savePlantData(currentPlant);
   loadPlant(currentPlant);
 });
 
-// Cambiar semana manual
-weekInput.addEventListener('input',()=>{
-  let w=parseInt(weekInput.value);
-  if(w<1) w=1; if(w>12) w=12;
+// Cambios en semana y etapa manual
+weekInput.addEventListener('change',()=>{
   const data=plantsData[currentPlant];
-  data.week=w;
-  data.stage=getStageName(w);
+  data.week=parseInt(weekInput.value);
+  data.stage=getStageName(data.week);
   stageSelect.value=data.stage;
-  plantImg.src=`week${String(w).padStart(2,'0')}.webp`;
-  generateCalendar(currentPlant);
   savePlantData(currentPlant);
+  loadPlant(currentPlant);
 });
-
-// Cambiar etapa manual
 stageSelect.addEventListener('change',()=>{
   const data=plantsData[currentPlant];
   const stage=stageSelect.value;
@@ -219,19 +247,8 @@ stageSelect.addEventListener('change',()=>{
     case 'Cosecha': data.week=12; break;
   }
   weekInput.value=data.week;
-  plantImg.src=`week${String(data.week).padStart(2,'0')}.webp`;
-  generateCalendar(currentPlant);
   savePlantData(currentPlant);
-});
-
-// Aplicar fecha de inicio
-document.getElementById('applyStart').addEventListener('click',()=>{
-  const val=startDateInput.value;
-  if(val){
-    plantsData[currentPlant].startDate=val;
-    savePlantData(currentPlant);
-    loadPlant(currentPlant);
-  }
+  loadPlant(currentPlant);
 });
 
 // Selección de planta
