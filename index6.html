@@ -1,145 +1,192 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Crecimiento de la Planta</title>
-  <style>
-    body {
-      background: linear-gradient(to top, #e8f5e9, #ffffff);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      font-family: 'Arial', sans-serif;
-      overflow: hidden;
-    }
-
-    h1 {
-      margin-bottom: 10px;
-      color: #2e7d32;
-    }
-
-    .container {
-      position: relative;
-      width: 630px; /* ancho total del sprite */
-      height: 280px; /* altura del sprite */
-      overflow: hidden;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: #f9fbe7;
-      border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-    }
-
-    .plant {
-      position: absolute;
-      width: 5040px; /* 8 etapas × 630px */
-      height: 280px;
-      background-image: url('4ef6e8b6-a7ef-4eda-b543-859562cd6441.webp');
-      background-repeat: no-repeat;
-      transition: transform 2s ease-in-out;
-    }
-
-    .controls {
-      margin-top: 20px;
-      display: flex;
-      gap: 10px;
-    }
-
-    button {
-      padding: 10px 18px;
-      font-size: 16px;
-      border: none;
-      background-color: #4caf50;
-      color: white;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    button:hover {
-      background-color: #388e3c;
-    }
-
-    .progress {
-      margin-top: 10px;
-      width: 300px;
-      height: 12px;
-      background: #c8e6c9;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    .progress-bar {
-      height: 100%;
-      width: 0%;
-      background: #2e7d32;
-      transition: width 1s ease;
-    }
-  </style>
+<meta charset="utf-8">
+<title>Ciclo 12 semanas - Planta</title>
+<style>
+  body { 
+    font-family: Arial, sans-serif; 
+    display:flex; 
+    flex-direction:column; 
+    align-items:center; 
+    padding:20px; 
+    background:#f0fff0;
+  }
+  h2 { margin-bottom:20px; }
+  .container {
+    display:flex;
+    gap:20px;
+    width:900px;
+  }
+  .viewer { 
+    flex:1;
+    height:700px; 
+    display:flex; 
+    align-items:center; 
+    justify-content:center; 
+    background:#f7fff7; 
+    border-radius:12px; 
+    box-shadow:0 6px 20px rgba(0,0,0,0.12); 
+    overflow:hidden; 
+  }
+  .plant-img { 
+    width:100%; 
+    height:100%; 
+    object-fit:contain; 
+    transition: opacity 0.8s ease, transform 1s ease; 
+  }
+  .info-panel {
+    width:250px;
+    background:#fff;
+    border-radius:12px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.1);
+    padding:15px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .info-item { display:flex; justify-content:space-between; align-items:center; }
+  input { width:80px; text-align:right; border-radius:4px; border:1px solid #ccc; padding:2px 4px;}
+  .controls { 
+    margin-top:12px; 
+    display:flex; 
+    gap:10px; 
+    align-items:center; 
+  }
+  button { 
+    padding:10px 14px; 
+    border-radius:8px; 
+    border:none; 
+    background:#2e7d32; 
+    color:white; 
+    cursor:pointer;
+  }
+  .range { width:400px; }
+</style>
 </head>
 <body>
-  <h1>Simulación de Crecimiento de la Planta 🌱</h1>
+<h2>Animación Ciclo 12 Semanas</h2>
 
-  <div class="container">
-    <div id="plant" class="plant"></div>
+<div class="container">
+  <div class="viewer">
+    <img id="plantImg" class="plant-img" src="week01.webp" alt="planta semana">
   </div>
-
-  <div class="controls">
-    <button onclick="growPlant()">Crecimiento +</button>
-    <button onclick="resetPlant()">Reiniciar</button>
-    <button onclick="autoGrow()">Auto (12 semanas)</button>
+  <div class="info-panel">
+    <div class="info-item"><label>Semana:</label><input type="number" id="weekInput" min="1" max="12"></div>
+    <div class="info-item"><label>Etapa:</label><input type="text" id="stageInput"></div>
+    <div class="info-item"><label>Altura (cm):</label><input type="number" id="heightInput"></div>
+    <div class="info-item"><label>N:</label><input type="number" id="nInput"></div>
+    <div class="info-item"><label>P:</label><input type="number" id="pInput"></div>
+    <div class="info-item"><label>K:</label><input type="number" id="kInput"></div>
+    <button id="updateBtn">Actualizar Datos</button>
   </div>
+</div>
 
-  <div class="progress">
-    <div id="progressBar" class="progress-bar"></div>
-  </div>
+<div class="controls">
+  <button id="prev">◀</button>
+  <input id="weekRange" class="range" type="range" min="1" max="12" value="1">
+  <button id="next">▶</button>
+  <button id="auto">Auto</button>
+  <button id="save">Guardar JSON</button>
+</div>
 
-  <script>
-    const plant = document.getElementById('plant');
-    const progressBar = document.getElementById('progressBar');
-    const totalStages = 8; // Etapas visibles en la imagen
-    let stage = 0;
-    let autoInterval;
+<script>
+const img = document.getElementById('plantImg');
+const range = document.getElementById('weekRange');
 
-    function updatePlant() {
-      const offset = stage * 630; // ancho de cada fase
-      plant.style.transform = `translateX(-${offset}px)`;
-      progressBar.style.width = `${(stage / (totalStages - 1)) * 100}%`;
-    }
+const weekInput = document.getElementById('weekInput');
+const stageInput = document.getElementById('stageInput');
+const heightInput = document.getElementById('heightInput');
+const nInput = document.getElementById('nInput');
+const pInput = document.getElementById('pInput');
+const kInput = document.getElementById('kInput');
 
-    function growPlant() {
-      if (stage < totalStages - 1) {
-        stage++;
-        updatePlant();
-      }
-    }
+let current = 1;
+let autoInterval;
 
-    function resetPlant() {
-      stage = 0;
-      updatePlant();
-      clearInterval(autoInterval);
-    }
+function randomRange(min,max){ return Math.round(min + Math.random()*(max-min)); }
 
-    function autoGrow() {
-      resetPlant();
-      let week = 0;
-      clearInterval(autoInterval);
-      autoInterval = setInterval(() => {
-        if (week < totalStages) {
-          stage = week;
-          updatePlant();
-          week++;
-        } else {
-          clearInterval(autoInterval);
-        }
-      }, 1500); // cada 1.5s cambia de etapa (puedes simular semanas)
-    }
+function getStage(week){
+  if(week<=1) return 'Germinación';
+  if(week<=3) return 'Plántula';
+  if(week<=7) return 'Vegetativo';
+  if(week===8||week===9) return 'Floración media';
+  if(week<=11) return 'Floración final / Maduración';
+  return 'Cosecha';
+}
 
-    // Inicializa la vista
-    updatePlant();
-  </script>
+function getDataForWeek(week){
+  const stage = getStage(week);
+  let height,nutrients;
+  switch(stage){
+    case 'Germinación': height=randomRange(1,3); nutrients={n:0,p:0,k:0}; break;
+    case 'Plántula': height=randomRange(4,8); nutrients={n:10,p:10,k:10}; break;
+    case 'Vegetativo': height=randomRange(9,20); nutrients={n:40,p:20,k:30}; break;
+    case 'Floración media': height=randomRange(21,30); nutrients={n:30,p:25,k:35}; break;
+    case 'Floración final / Maduración': height=randomRange(31,40); nutrients={n:20,p:20,k:40}; break;
+    case 'Cosecha': height=randomRange(41,45); nutrients={n:10,p:10,k:20}; break;
+  }
+  return {week,stage,height,nutrients};
+}
+
+function loadWeek(n){
+  n=Math.max(1,Math.min(12,n));
+  current=n;
+  const filename = `week${String(n).padStart(2,'0')}.webp`; // ruta relativa simple
+  img.style.opacity=0;
+  setTimeout(()=>{
+    img.src=filename; img.style.opacity=1;
+
+    const data=getDataForWeek(n);
+
+    weekInput.value=data.week;
+    stageInput.value=data.stage;
+    heightInput.value=data.height;
+    nInput.value=data.nutrients.n;
+    pInput.value=data.nutrients.p;
+    kInput.value=data.nutrients.k;
+
+    const history=JSON.parse(localStorage.getItem('growthHistory')||'[]');
+    history.push(data);
+    localStorage.setItem('growthHistory',JSON.stringify(history));
+
+    range.value=n;
+  },250);
+}
+
+document.getElementById('updateBtn').addEventListener('click',()=>{
+  const data={
+    week: parseInt(weekInput.value),
+    stage: stageInput.value,
+    height: parseFloat(heightInput.value),
+    nutrients:{n:parseFloat(nInput.value),p:parseFloat(pInput.value),k:parseFloat(kInput.value)}
+  };
+  const filename = `week${String(data.week).padStart(2,'0')}.webp`;
+  img.src = filename;
+  range.value = data.week;
+  current = data.week;
+
+  const history=JSON.parse(localStorage.getItem('growthHistory')||'[]');
+  history.push(data);
+  localStorage.setItem('growthHistory',JSON.stringify(history));
+});
+
+document.getElementById('prev').addEventListener('click',()=>{ if(current>1) loadWeek(current-1); });
+document.getElementById('next').addEventListener('click',()=>{ if(current<12) loadWeek(current+1); });
+document.getElementById('auto').addEventListener('click',()=>{
+  clearInterval(autoInterval); let w=1;
+  autoInterval=setInterval(()=>{ if(w>12){clearInterval(autoInterval);return;} loadWeek(w); w++;},1500);
+});
+document.getElementById('save').addEventListener('click',()=>{
+  const history=JSON.parse(localStorage.getItem('growthHistory')||'[]');
+  const blob=new Blob([JSON.stringify(history,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download='growth_history.json'; a.click();
+  URL.revokeObjectURL(url);
+});
+
+loadWeek(1);
+range.addEventListener('input',e=>loadWeek(parseInt(e.target.value)));
+</script>
 </body>
 </html>
