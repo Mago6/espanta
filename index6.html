@@ -4,36 +4,43 @@
 <meta charset="UTF-8">
 <title>25 Plantas - Calendario Diario Exterior</title>
 <style>
-body { font-family: Arial; background:#000; color:#f00; padding:20px; }
-h2 { text-align:center; margin-bottom:20px; color:#f00; }
+body { font-family: Arial; background:#000; color:#f00; padding:20px; margin:0; }
+h2 { text-align:center; margin-bottom:20px; color:#f00; font-size:1.5em; }
 
 .selection-panel { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:15px; }
-.selection-panel select, .selection-panel input, .selection-panel button { padding:5px; border-radius:4px; border:1px solid #f00; background:#000; color:#f00; cursor:pointer; }
+.selection-panel select, .selection-panel input, .selection-panel button { padding:5px; border-radius:4px; border:1px solid #f00; background:#000; color:#f00; cursor:pointer; font-size:0.9em; }
 .selection-panel button:hover, .selection-panel select:hover, .selection-panel input:hover { background:#f00; color:#000; }
 
 .main-container { display:flex; gap:20px; flex-wrap: wrap; justify-content:center; }
-.viewer-container { display:flex; flex-direction:column; align-items:center; gap:10px; }
-.viewer { width:500px; height:350px; background:#111; border-radius:12px; display:flex; align-items:center; justify-content:center; }
+.viewer-container { display:flex; flex-direction:column; align-items:center; gap:10px; flex:1 1 300px; }
+.viewer { width:100%; max-width:500px; height:300px; background:#111; border-radius:12px; display:flex; align-items:center; justify-content:center; }
 .plant-img { width:100%; height:100%; object-fit:contain; border-radius:8px; border:2px solid #f00; }
 
 .npk-panel { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:5px; }
-.npk-panel input { width:80px; text-align:right; border-radius:4px; border:1px solid #f00; background:#000; color:#f00; }
+.npk-panel input { width:70px; text-align:right; border-radius:4px; border:1px solid #f00; background:#000; color:#f00; }
 
-#calendarContainer { margin-top:10px; display:flex; flex-direction:column; gap:5px; overflow-x:auto; }
+#calendarContainer { margin-top:10px; display:flex; flex-direction:column; gap:5px; overflow-x:auto; flex:1 1 300px; }
 .month-row { display:flex; gap:2px; flex-wrap:wrap; align-items:center; }
-.month-label { width:50px; font-weight:bold; display:flex; align-items:center; justify-content:center; color:#f00; }
-.day-box { width:40px; height:40px; display:flex; justify-content:center; align-items:center; border-radius:4px; font-size:10px; cursor:pointer; border:1px solid #f00; background:#111; color:#f00; }
+.month-label { width:50px; font-weight:bold; display:flex; align-items:center; justify-content:center; color:#f00; font-size:0.8em; }
+.day-box { width:30px; height:30px; display:flex; justify-content:center; align-items:center; border-radius:4px; font-size:9px; cursor:pointer; border:1px solid #f00; background:#111; color:#f00; }
 .passed-day { background:green; color:#000; }
 .current-day { border:2px solid #f00; background:#f00; color:#000; }
 
-#remainingDays { margin-top:10px; font-weight:bold; color:#0f0; }
-#currentStage { margin-top:5px; font-weight:bold; color:#0f0; }
-#startInfo { margin-top:5px; font-weight:bold; color:#0f0; }
+#infoContainer { margin-top:10px; font-weight:bold; color:#0f0; display:flex; flex-wrap:wrap; gap:10px; justify-content:center; font-size:0.9em; }
 
 #dashboard { display:none; margin-top:20px; }
-.dashboard-grid { display:grid; grid-template-columns: repeat(5, 1fr); gap:10px; }
+.dashboard-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(100px,1fr)); gap:10px; }
 .plant-card { padding:5px; border-radius:6px; background:#111; text-align:center; font-size:12px; display:flex; flex-direction:column; align-items:center; color:#f00; }
 .plant-card img { width:80px; height:60px; object-fit:contain; border-radius:4px; margin-bottom:5px; border:1px solid #f00; }
+
+@media screen and (max-width:600px){
+  .selection-panel { flex-direction:column; align-items:flex-start; }
+  .viewer { height:250px; }
+  .day-box { width:25px; height:25px; font-size:8px; }
+  .month-label { width:40px; font-size:0.7em; }
+  .npk-panel input { width:50px; }
+  #infoContainer { font-size:0.8em; flex-direction:column; align-items:center; }
+}
 </style>
 </head>
 <body>
@@ -70,9 +77,11 @@ h2 { text-align:center; margin-bottom:20px; color:#f00; }
       <div><label>P:</label><input type="number" id="pInput"></div>
       <div><label>K:</label><input type="number" id="kInput"></div>
     </div>
-    <div id="remainingDays"></div>
-    <div id="currentStage"></div>
-    <div id="startInfo"></div>
+    <div id="infoContainer">
+      <div id="remainingDays"></div>
+      <div id="currentStage"></div>
+      <div id="startInfo"></div>
+    </div>
   </div>
   <div id="calendarContainer"></div>
 </div>
@@ -83,6 +92,7 @@ h2 { text-align:center; margin-bottom:20px; color:#f00; }
 </div>
 
 <script>
+// --- Variables ---
 const NUM_PLANTS=25;
 const plantSelect=document.getElementById('plantSelect');
 const stageSelect=document.getElementById('stageSelect');
@@ -102,7 +112,7 @@ const startInfoDiv=document.getElementById('startInfo');
 
 let plantsData={}, currentPlant='Planta01';
 
-// Inicializar plantas
+// --- Inicializar plantas ---
 for(let i=1;i<=NUM_PLANTS;i++){
   const id='Planta'+String(i).padStart(2,'0');
   plantsData[id]=JSON.parse(localStorage.getItem(id))||{
@@ -113,7 +123,7 @@ for(let i=1;i<=NUM_PLANTS;i++){
   plantSelect.appendChild(option);
 }
 
-// Función de etapa exterior Toluca
+// --- Función de etapa exterior Toluca ---
 function getStageNameExterior(week){
   if(week<=1) return 'Germinación';
   if(week<=3) return 'Plántula';
@@ -122,16 +132,16 @@ function getStageNameExterior(week){
   return 'Cosecha';
 }
 
-// Calcular semana exacta según fecha inicio
+// --- Calcular semana exacta ---
 function calculateWeekExterior(start){
   const today=new Date();
   const startDate=new Date(start);
   if(today<startDate) return 0;
-  const diffDays=Math.floor((today-startDate)/(1000*60*60*24)) + 1; // se cuenta desde día 1
+  const diffDays=Math.floor((today-startDate)/(1000*60*60*24)) + 1;
   return Math.min(Math.floor(diffDays/7)+1,32);
 }
 
-// Generar calendario por meses y marcar días pasados
+// --- Generar calendario ---
 function generateCalendarExterior(plantId){
   calendarContainer.innerHTML='';
   const data=plantsData[plantId];
@@ -172,7 +182,7 @@ function appendMonthExterior(year, month, monthDays, data, today){
   calendarContainer.appendChild(monthRow);
 }
 
-// Cargar planta
+// --- Cargar planta ---
 function loadPlant(id){
   currentPlant=id;
   const data=plantsData[id];
@@ -191,9 +201,8 @@ function loadPlant(id){
   kInput.value=data.nutrients.k;
 
   const remaining=Math.max(32-data.week,0);
-  remainingDaysDiv.textContent=`Semanas restantes hasta cosecha: ${remaining}`;
+  remainingDaysDiv.textContent=`Semanas restantes: ${remaining} | Inicio: ${data.startDate}`;
   currentStageDiv.textContent=`Etapa actual: ${data.stage}`;
-  startInfoDiv.textContent=`Fecha inicio: ${data.startDate}`;
 
   if(data.stage==='Cosecha'){
     const reducedHeight=Math.round(data.height*0.7);
@@ -203,7 +212,7 @@ function loadPlant(id){
   generateCalendarExterior(id);
 }
 
-// Actualizar y guardar
+// --- Actualizar y guardar ---
 document.getElementById('updateBtn').addEventListener('click',()=>{
   const data=plantsData[currentPlant];
   const startVal=new Date(startDateInput.value);
@@ -225,7 +234,7 @@ document.getElementById('updateBtn').addEventListener('click',()=>{
   loadPlant(currentPlant);
 });
 
-// Sincronizar semana y etapa
+// --- Sincronizar semana y etapa ---
 stageSelect.addEventListener('change',()=>{
   const data=plantsData[currentPlant];
   switch(stageSelect.value){
@@ -252,10 +261,10 @@ weekInput.addEventListener('change',()=>{
   loadPlant(currentPlant);
 });
 
-// Cambiar planta
+// --- Cambiar planta ---
 plantSelect.addEventListener('change',()=>loadPlant(plantSelect.value));
 
-// Dashboard
+// --- Dashboard ---
 document.getElementById('showDashboard').addEventListener('click',()=>{
   dashboard.style.display='block';
   dashboardGrid.innerHTML='';
@@ -269,7 +278,7 @@ document.getElementById('showDashboard').addEventListener('click',()=>{
   }
 });
 
-// Init
+// --- Init ---
 loadPlant('Planta01');
 </script>
 
