@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>25 Plantas - Calendario Diario</title>
+<title>25 Plantas - Calendario Diario Exterior</title>
 <style>
 body { font-family: Arial; background:#000; color:#f00; padding:20px; }
 h2 { text-align:center; margin-bottom:20px; color:#f00; }
@@ -36,22 +36,21 @@ h2 { text-align:center; margin-bottom:20px; color:#f00; }
 </head>
 <body>
 
-<h2>25 Plantas - Calendario Diario</h2>
+<h2>25 Plantas - Calendario Diario Exterior</h2>
 
 <div class="selection-panel">
   <label>Planta:</label>
   <select id="plantSelect"></select>
   <label>Fecha inicio:</label>
-  <input type="date" id="startDate">
+  <input type="date" id="startDate" min="2024-01-01">
   <label>Semana:</label>
-  <input type="number" id="weekInput" min="1" max="52">
+  <input type="number" id="weekInput" min="1" max="32">
   <label>Etapa:</label>
   <select id="stageSelect">
     <option>Germinación</option>
     <option>Plántula</option>
     <option>Vegetativo</option>
-    <option>Floración media</option>
-    <option>Floración final / Maduración</option>
+    <option>Floración</option>
     <option>Cosecha</option>
   </select>
   <button id="updateBtn">Actualizar y Guardar Planta</button>
@@ -108,27 +107,26 @@ for(let i=1;i<=NUM_PLANTS;i++){
   plantSelect.appendChild(option);
 }
 
-// Funciones de etapa para ciclo anual
-function getStageNameAnnual(week){
-  if(week<=4) return 'Germinación';
-  if(week<=12) return 'Plántula';
-  if(week<=28) return 'Vegetativo';
-  if(week<=36) return 'Floración media';
-  if(week<=48) return 'Floración final / Maduración';
+// Función de etapa exterior Toluca
+function getStageNameExterior(week){
+  if(week<=1) return 'Germinación';
+  if(week<=3) return 'Plántula';
+  if(week<=13) return 'Vegetativo';
+  if(week<=23) return 'Floración';
   return 'Cosecha';
 }
 
-// Calcular semana según fecha (52 semanas)
-function calculateWeekAnnual(start){
+// Calcular semana según fecha exterior
+function calculateWeekExterior(start){
   const today=new Date();
   const startDate=new Date(start);
   if(today<startDate) return 0;
   const diffDays=Math.floor((today-startDate)/(1000*60*60*24));
-  return Math.min(Math.floor(diffDays/7)+1,52);
+  return Math.min(Math.floor(diffDays/7)+1,32);
 }
 
-// Generar calendario completo por meses y colorear solo días pasados
-function generateCalendarAnnual(plantId){
+// Generar calendario por meses y marcar días pasados
+function generateCalendarExterior(plantId){
   calendarContainer.innerHTML='';
   const data=plantsData[plantId];
   const start=new Date(data.startDate);
@@ -140,19 +138,19 @@ function generateCalendarAnnual(plantId){
 
   for(let i=0;i<365;i++){
     if(date.getMonth()!==monthStart){
-      appendMonthAnnual(monthYear, monthStart, monthDays, data, today);
+      appendMonthExterior(monthYear, monthStart, monthDays, data, today);
       monthDays=[];
       monthStart=date.getMonth();
       monthYear=date.getFullYear();
     }
-    const weekNum=Math.min(Math.floor((date-start)/(1000*60*60*24*7))+1,52);
+    const weekNum=Math.min(Math.floor((date-start)/(1000*60*60*24*7))+1,32);
     monthDays.push({day:date.getDate(), week:weekNum, dateObj:new Date(date)});
     date.setDate(date.getDate()+1);
   }
-  if(monthDays.length>0) appendMonthAnnual(monthYear, monthStart, monthDays, data, today);
+  if(monthDays.length>0) appendMonthExterior(monthYear, monthStart, monthDays, data, today);
 }
 
-function appendMonthAnnual(year, month, monthDays, data, today){
+function appendMonthExterior(year, month, monthDays, data, today){
   const monthRow=document.createElement('div'); monthRow.className='month-row';
   const monthLabel=document.createElement('div'); monthLabel.className='month-label';
   monthLabel.textContent=new Date(year, month).toLocaleString('es-ES',{month:'short'});
@@ -169,13 +167,13 @@ function appendMonthAnnual(year, month, monthDays, data, today){
   calendarContainer.appendChild(monthRow);
 }
 
-// Cargar planta y actualizar todo
+// Cargar planta
 function loadPlant(id){
   currentPlant=id;
   const data=plantsData[id];
   startDateInput.value=data.startDate;
-  data.week=calculateWeekAnnual(data.startDate);
-  data.stage=getStageNameAnnual(data.week);
+  data.week=calculateWeekExterior(data.startDate);
+  data.stage=getStageNameExterior(data.week);
   stageSelect.value=data.stage;
   weekInput.value=data.week;
   plantImg.src=`week${String(Math.min(data.week,12)).padStart(2,'0')}.webp`;
@@ -184,18 +182,20 @@ function loadPlant(id){
   pInput.value=data.nutrients.p;
   kInput.value=data.nutrients.k;
 
-  const remaining=Math.max(52-data.week,0);
+  const remaining=Math.max(32-data.week,0);
   remainingDaysDiv.textContent=`Semanas restantes hasta cosecha: ${remaining}`;
 
-  generateCalendarAnnual(id);
+  generateCalendarExterior(id);
 }
 
 // Actualizar y guardar
 document.getElementById('updateBtn').addEventListener('click',()=>{
   const data=plantsData[currentPlant];
+  const startVal=new Date(startDateInput.value);
+  if(startVal.getFullYear()<2024){ alert('No se permite una fecha antes de 2024'); return; }
   data.startDate=startDateInput.value;
   data.week=parseInt(weekInput.value);
-  data.stage=getStageNameAnnual(data.week);
+  data.stage=getStageNameExterior(data.week);
   stageSelect.value=data.stage;
   data.height=parseFloat(heightInput.value);
   data.nutrients={n:parseFloat(nInput.value),p:parseFloat(pInput.value),k:parseFloat(kInput.value)};
@@ -209,11 +209,10 @@ stageSelect.addEventListener('change',()=>{
   const data=plantsData[currentPlant];
   switch(stageSelect.value){
     case 'Germinación': data.week=1; break;
-    case 'Plántula': data.week=8; break;
-    case 'Vegetativo': data.week=16; break;
-    case 'Floración media': data.week=30; break;
-    case 'Floración final / Maduración': data.week=40; break;
-    case 'Cosecha': data.week=49; break;
+    case 'Plántula': data.week=3; break;
+    case 'Vegetativo': data.week=7; break;
+    case 'Floración': data.week=14; break;
+    case 'Cosecha': data.week=24; break;
   }
   data.stage=stageSelect.value;
   weekInput.value=data.week;
@@ -225,7 +224,7 @@ stageSelect.addEventListener('change',()=>{
 weekInput.addEventListener('change',()=>{
   const data=plantsData[currentPlant];
   data.week=parseInt(weekInput.value);
-  data.stage=getStageNameAnnual(data.week);
+  data.stage=getStageNameExterior(data.week);
   stageSelect.value=data.stage;
   plantsData[currentPlant]=data;
   localStorage.setItem(currentPlant, JSON.stringify(data));
