@@ -116,6 +116,11 @@ function calcularSemanasDesdeInicio(start){
   const hoy = new Date();
   const inicio = new Date(corregirFecha(start));
   if(isNaN(inicio.getTime())) return 1;
+
+  // Normalizar fechas a medianoche para evitar desfase
+  hoy.setHours(0,0,0,0);
+  inicio.setHours(0,0,0,0);
+
   const diffDias = Math.floor((hoy - inicio)/(1000*60*60*24));
   const semanas = Math.min(Math.floor(diffDias/7)+1, 48);
   return semanas < 1 ? 1 : semanas;
@@ -162,7 +167,9 @@ function generateCalendar(plantId){
   calendarContainer.innerHTML='';
   const data=plantsData[plantId];
   const start=new Date(data.startDate);
+  start.setHours(0,0,0,0); // Normalizar inicio
   const today=new Date();
+  today.setHours(0,0,0,0); // Normalizar hoy
   let date=new Date(start);
   let monthStart=date.getMonth();
   let monthYear=date.getFullYear();
@@ -170,6 +177,7 @@ function generateCalendar(plantId){
 
   for(let i=0;i<365;i++){
     const current=new Date(date);
+    current.setHours(0,0,0,0); // Normalizar cada día
     if(current.getMonth()!==monthStart){
       appendMonth(monthYear,monthStart,monthDays,data,today,start);
       monthDays=[];
