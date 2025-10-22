@@ -28,6 +28,7 @@ h2 { text-align:center; margin-bottom:20px; color:#f00; }
 
 #remainingDays { margin-top:10px; font-weight:bold; color:#0f0; }
 #currentStage { margin-top:5px; font-weight:bold; color:#0f0; }
+#startInfo { margin-top:5px; font-weight:bold; color:#0f0; }
 
 #dashboard { display:none; margin-top:20px; }
 .dashboard-grid { display:grid; grid-template-columns: repeat(5, 1fr); gap:10px; }
@@ -71,6 +72,7 @@ h2 { text-align:center; margin-bottom:20px; color:#f00; }
     </div>
     <div id="remainingDays"></div>
     <div id="currentStage"></div>
+    <div id="startInfo"></div>
   </div>
   <div id="calendarContainer"></div>
 </div>
@@ -96,6 +98,7 @@ const dashboard=document.getElementById('dashboard');
 const dashboardGrid=document.getElementById('dashboardGrid');
 const remainingDaysDiv=document.getElementById('remainingDays');
 const currentStageDiv=document.getElementById('currentStage');
+const startInfoDiv=document.getElementById('startInfo');
 
 let plantsData={}, currentPlant='Planta01';
 
@@ -119,12 +122,12 @@ function getStageNameExterior(week){
   return 'Cosecha';
 }
 
-// Calcular semana según fecha exterior
+// Calcular semana exacta según fecha inicio
 function calculateWeekExterior(start){
   const today=new Date();
   const startDate=new Date(start);
   if(today<startDate) return 0;
-  const diffDays=Math.floor((today-startDate)/(1000*60*60*24));
+  const diffDays=Math.floor((today-startDate)/(1000*60*60*24)) + 1; // se cuenta desde día 1
   return Math.min(Math.floor(diffDays/7)+1,32);
 }
 
@@ -146,8 +149,7 @@ function generateCalendarExterior(plantId){
       monthStart=date.getMonth();
       monthYear=date.getFullYear();
     }
-    const weekNum=Math.min(Math.floor((date-start)/(1000*60*60*24*7))+1,32);
-    monthDays.push({day:date.getDate(), week:weekNum, dateObj:new Date(date)});
+    monthDays.push({day:date.getDate(), dateObj:new Date(date)});
     date.setDate(date.getDate()+1);
   }
   if(monthDays.length>0) appendMonthExterior(monthYear, monthStart, monthDays, data, today);
@@ -180,11 +182,9 @@ function loadPlant(id){
   stageSelect.value=data.stage;
   weekInput.value=data.week;
 
-  // Actualizar imagen según semana
-  let imgWeek=Math.min(data.week,12); // limitamos a week12.webp para evitar error
+  let imgWeek=Math.min(data.week,12); 
   plantImg.src=`week${String(imgWeek).padStart(2,'0')}.webp`;
 
-  // Altura y NPK
   heightInput.value=data.height;
   nInput.value=data.nutrients.n;
   pInput.value=data.nutrients.p;
@@ -193,8 +193,8 @@ function loadPlant(id){
   const remaining=Math.max(32-data.week,0);
   remainingDaysDiv.textContent=`Semanas restantes hasta cosecha: ${remaining}`;
   currentStageDiv.textContent=`Etapa actual: ${data.stage}`;
+  startInfoDiv.textContent=`Fecha inicio: ${data.startDate}`;
 
-  // Ajustar peso tras cosecha
   if(data.stage==='Cosecha'){
     const reducedHeight=Math.round(data.height*0.7);
     heightInput.value=reducedHeight;
@@ -213,7 +213,6 @@ document.getElementById('updateBtn').addEventListener('click',()=>{
   data.stage=getStageNameExterior(data.week);
   stageSelect.value=data.stage;
 
-  // Calcular peso si etapa es cosecha
   if(data.stage==='Cosecha'){
     data.height=Math.round(parseFloat(heightInput.value)*0.7);
   } else {
