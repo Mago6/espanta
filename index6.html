@@ -153,20 +153,34 @@ function calculateWeek(start){
   return Math.min(Math.max(Math.floor(diff/7)+1,1),12);
 }
 
-// Generar calendario mensual tipo pared (30 días desde inicio)
+// Generar calendario diario desde fecha de inicio (30 días por defecto)
 function generateMonthlyCalendar(plantId){
   calendarContainer.innerHTML='';
-  const data=plantsData[plantId];
-  const start=new Date(data.startDate);
-  const today=new Date();
-  for(let i=0;i<30;i++){
-    const dayDate=new Date(start);
-    dayDate.setDate(dayDate.getDate()+i);
-    const weekNum=Math.min(Math.floor(i/7)+1,12);
-    const dayBox=document.createElement('div');
-    dayBox.className='day-box '+getStageClass(weekNum);
-    dayBox.textContent=dayDate.getDate()+'/'+(dayDate.getMonth()+1);
-    if(dayDate.toDateString()===today.toDateString()) dayBox.classList.add('current-day');
+  const data = plantsData[plantId];
+  const start = new Date(data.startDate);
+  const today = new Date();
+
+  const TOTAL_DAYS = 30; // seguimiento diario
+  for(let i=0; i<TOTAL_DAYS; i++){
+    const dayDate = new Date(start);
+    dayDate.setDate(dayDate.getDate() + i);
+
+    const weekNum = Math.min(Math.floor(i/7)+1,12);
+    const dayBox = document.createElement('div');
+    dayBox.className = 'day-box ' + getStageClass(weekNum);
+
+    dayBox.textContent = dayDate.getDate() + '/' + (dayDate.getMonth()+1);
+
+    if(dayDate.toDateString() === today.toDateString()){
+      dayBox.classList.add('current-day');
+    }
+
+    dayBox.onclick = () => {
+      plantsData[plantId].week = weekNum;
+      localStorage.setItem(plantId, JSON.stringify(plantsData[plantId]));
+      loadPlant(plantId);
+    };
+
     calendarContainer.appendChild(dayBox);
   }
 }
