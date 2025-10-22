@@ -46,7 +46,7 @@ h2 { text-align:center; margin-bottom:15px; color:#f00; font-size:18px; }
   <label>Fecha inicio:</label>
   <input type="date" id="startDate" min="2024-01-01">
   <label>Semana:</label>
-  <input type="number" id="weekInput" min="1" max="12">
+  <input type="number" id="weekInput" min="1" max="52">
   <label>Etapa:</label>
   <select id="stageSelect">
     <option>Germinación</option>
@@ -121,22 +121,22 @@ for (let i = 1; i <= NUM_PLANTS; i++) {
     plantSelect.appendChild(option);
 }
 
-// Función para asignar nombre de etapa según semana (ciclo anual ajustado)
-function getStageName(week) {
-    if (week === 1) return 'Germinación';
-    if (week >= 2 && week <= 3) return 'Plántula';
-    if (week >= 4 && week <= 8) return 'Vegetativo';
-    if (week >= 9 && week <= 12) return 'Floración';
+// Función para determinar etapa según semana en ciclo anual
+function getStageNameByWeek(week) {
+    if (week <= 2) return 'Germinación';       // 0-10 días aprox
+    if (week <= 6) return 'Plántula';         // 0.5-1.5 meses
+    if (week <= 18) return 'Vegetativo';      // 1.5-3.5 meses
+    if (week <= 26) return 'Floración';       // 3.5-6 meses
     return 'Cosecha';
 }
 
-// Función para asignar imagen según semana
+// Imagen según semana (ajustada por ciclo anual)
 function getImageForWeek(week) {
-    if (week === 1) return 'week01.webp'; // Germinación
-    if (week >= 2 && week <= 3) return `week0${week}.webp`; // Plántula
-    if (week >= 4 && week <= 8) return `week0${week}.webp`; // Vegetativo
-    if (week >= 9 && week <= 12) return `week0${week}.webp`; // Floración
-    return 'week12.webp'; // Cosecha por defecto
+    if (week <= 2) return 'week01.webp';
+    if (week <= 6) return `week0${week}.webp`;
+    if (week <= 18) return `week0${week}.webp`;
+    if (week <= 26) return `week0${week}.webp`;
+    return 'week12.webp';
 }
 
 // Calcular semanas pasadas desde inicio
@@ -144,11 +144,10 @@ function calculateWeek(start) {
     const today = new Date();
     const startDate = new Date(start);
     const diffDays = Math.floor((today - startDate) / (1000 * 60 * 60 * 24)) + 1;
-    const week = Math.min(Math.ceil(diffDays / 7), 12);
-    return week;
+    return Math.min(Math.ceil(diffDays / 7), 52);
 }
 
-// Generar calendario anual (solo días pasados coloreados)
+// Generar calendario anual
 function generateCalendar(plantId) {
     calendarContainer.innerHTML = '';
     const data = plantsData[plantId];
@@ -166,7 +165,7 @@ function generateCalendar(plantId) {
             monthStart = date.getMonth();
             monthYear = date.getFullYear();
         }
-        const weekNum = Math.min(Math.ceil((date - start) / (1000 * 60 * 60 * 24 * 7)), 12);
+        const weekNum = Math.min(Math.ceil((date - start) / (1000 * 60 * 60 * 24 * 7)), 52);
         monthDays.push({ day: date.getDate(), week: weekNum, dateObj: new Date(date) });
         date.setDate(date.getDate() + 1);
     }
@@ -184,19 +183,22 @@ function appendMonth(year, month, monthDays, data, today) {
         box.className = 'day-box';
         box.textContent = d.day;
         if (d.dateObj < today) box.classList.add('passed-day');
-        if (d.dateObj <= today && d.week === plantsData[currentPlant].week) box.classList.add('current-day');
+        if (d.dateObj <= today && calculateWeek(data.startDate) === d.week) box.classList.add('current-day');
         monthRow.appendChild(box);
     });
     calendarContainer.appendChild(monthRow);
 }
 
-// Cargar planta y actualizar interfaz
+// Cargar planta
 function loadPlant(id) {
     currentPlant = id;
     const data = plantsData[id];
     startDateInput.value = data.startDate;
-    data.week = calculateWeek(data.startDate);
-    data.stage = getStageName(data.week);
+
+    const weeksPassed = calculateWeek(data.startDate);
+    data.week = weeksPassed;
+    data.stage = getStageNameByWeek(weeksPassed);
+
     stageSelect.value = data.stage;
     weekInput.value = data.week;
     plantImg.src = getImageForWeek(data.week);
@@ -205,9 +207,7 @@ function loadPlant(id) {
     pInput.value = data.nutrients.p;
     kInput.value = data.nutrients.k;
 
-    const totalWeeks = 12;
-    const weeksPassed = data.week;
-    const weeksRemaining = totalWeeks - data.week;
+    const weeksRemaining = 52 - weeksPassed;
 
     weeksPassedDiv.textContent = `Semanas transcurridas: ${weeksPassed}`;
     weeksRemainingDiv.textContent = `Semanas restantes hasta cosecha: ${weeksRemaining}`;
@@ -217,12 +217,12 @@ function loadPlant(id) {
     generateCalendar(id);
 }
 
-// Guardar datos en localStorage
+// Guardar planta
 function savePlantData(id) {
     localStorage.setItem(id, JSON.stringify(plantsData[id]));
 }
 
-// Actualizar y guardar planta
+// Actualizar y guardar
 document.getElementById('updateBtn').addEventListener('click', () => {
     const data = plantsData[currentPlant];
     if (new Date(startDateInput.value) < new Date('2024-01-01')) {
@@ -231,7 +231,7 @@ document.getElementById('updateBtn').addEventListener('click', () => {
     }
     data.startDate = startDateInput.value;
     data.week = parseInt(weekInput.value);
-    data.stage = getStageName(data.week);
+    data.stage = getStageNameByWeek(data.week);
     stageSelect.value = data.stage;
     data.height = parseFloat(heightInput.value);
     data.nutrients = { n: parseFloat(nInput.value), p: parseFloat(pInput.value), k: parseFloat(kInput.value) };
@@ -245,8 +245,8 @@ stageSelect.addEventListener('change', () => {
     const data = plantsData[currentPlant];
     switch (stageSelect.value) {
         case 'Germinación': data.week = 1; break;
-        case 'Plántula': data.week = 2; break;
-        case 'Vegetativo': data.week = 4; break;
+        case 'Plántula': data.week = 3; break;
+        case 'Vegetativo': data.week = 6; break;
         case 'Floración': data.week = 9; break;
         case 'Cosecha': data.week = 12; break;
     }
@@ -260,7 +260,7 @@ stageSelect.addEventListener('change', () => {
 weekInput.addEventListener('change', () => {
     const data = plantsData[currentPlant];
     data.week = parseInt(weekInput.value);
-    data.stage = getStageName(data.week);
+    data.stage = getStageNameByWeek(data.week);
     stageSelect.value = data.stage;
     plantsData[currentPlant] = data;
     savePlantData(currentPlant);
