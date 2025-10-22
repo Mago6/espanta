@@ -24,7 +24,8 @@ h2 { text-align:center; margin-bottom:20px; color:#f00; }
 .day-box { width:40px; height:40px; display:flex; justify-content:center; align-items:center; border-radius:4px; font-size:10px; cursor:pointer; border:1px solid #f00; background:#111; color:#f00; }
 .passed-day { background:green; color:#000; }
 .current-day { border:2px solid #f00; background:#f00; color:#000; }
-.sunday-day { border-top:2px solid #ff0; } /* resalta domingos */
+.start-day { border:2px solid #ff0; background:#ff0; color:#000; font-weight:bold; }
+.sunday-day { border-top:2px solid #ff0; }
 
 #infoSummary { margin-top:10px; font-weight:bold; color:#0f0; text-align:center; line-height:1.4em; }
 
@@ -103,7 +104,6 @@ const infoSummary=document.getElementById('infoSummary');
 
 let plantsData={}, currentPlant='Planta01';
 
-// --- Corrige fecha con "00" ---
 function corregirFecha(fechaStr){
   if(!fechaStr) return "";
   let partes = fechaStr.split("-");
@@ -112,7 +112,6 @@ function corregirFecha(fechaStr){
   return partes.join("-");
 }
 
-// --- Calcular semanas desde la fecha de inicio ---
 function calcularSemanasDesdeInicio(start){
   const hoy = new Date();
   const inicio = new Date(corregirFecha(start));
@@ -122,7 +121,6 @@ function calcularSemanasDesdeInicio(start){
   return semanas < 1 ? 1 : semanas;
 }
 
-// --- Determinar etapa según semana ---
 function getStageNameByWeek(week){
   if(week <= 1) return "Germinación";
   if(week <= 3) return "Plántula";
@@ -132,7 +130,6 @@ function getStageNameByWeek(week){
   return "Cosecha";
 }
 
-// --- Asignar imagen según semana ---
 function getImageForWeek(week){
   if(week <= 1) return "week01.webp";
   if(week <= 3) return "week02.webp";
@@ -149,20 +146,18 @@ function getImageForWeek(week){
   return "week13.webp";
 }
 
-// --- Mostrar resumen ---
 function showInfo(data){
   const semanas = data.week;
   const restantes = Math.max(48 - semanas, 0);
   const etapa = getStageNameByWeek(semanas);
   infoSummary.innerHTML = `
-    <div><b>Fecha inicio:</b> ${data.startDate}</div>
+    <div><b>🌱 Fecha inicio:</b> <span style="color:#ff0">${data.startDate}</span></div>
     <div><b>Semanas pasadas:</b> ${semanas}</div>
     <div><b>Semanas restantes:</b> ${restantes}</div>
     <div><b>Etapa actual:</b> ${etapa}</div>
   `;
 }
 
-// --- Generar calendario con domingos resaltados ---
 function generateCalendar(plantId){
   calendarContainer.innerHTML='';
   const data=plantsData[plantId];
@@ -174,39 +169,43 @@ function generateCalendar(plantId){
   let monthDays=[];
 
   for(let i=0;i<365;i++){
-    if(date.getMonth()!==monthStart){
-      appendMonth(monthYear,monthStart,monthDays,data,today);
+    const current=new Date(date);
+    if(current.getMonth()!==monthStart){
+      appendMonth(monthYear,monthStart,monthDays,data,today,start);
       monthDays=[];
-      monthStart=date.getMonth();
-      monthYear=date.getFullYear();
+      monthStart=current.getMonth();
+      monthYear=current.getFullYear();
     }
-    const weekNum=Math.min(Math.floor((date-start)/(1000*60*60*24*7))+1,48);
-    monthDays.push({day:date.getDate(),week:weekNum,dateObj:new Date(date)});
+    monthDays.push({day:current.getDate(),dateObj:current});
     date.setDate(date.getDate()+1);
   }
-  if(monthDays.length>0) appendMonth(monthYear,monthStart,monthDays,data,today);
+  if(monthDays.length>0) appendMonth(monthYear,monthStart,monthDays,data,today,start);
 }
 
-function appendMonth(year,month,monthDays,data,today){
-  const monthRow=document.createElement('div'); monthRow.className='month-row';
-  const monthLabel=document.createElement('div'); monthLabel.className='month-label';
+function appendMonth(year,month,monthDays,data,today,start){
+  const monthRow=document.createElement('div');
+  monthRow.className='month-row';
+  const monthLabel=document.createElement('div');
+  monthLabel.className='month-label';
   monthLabel.textContent=new Date(year,month).toLocaleString('es-ES',{month:'short'});
   monthRow.appendChild(monthLabel);
 
   monthDays.forEach(d=>{
-    const box=document.createElement('div'); 
+    const box=document.createElement('div');
     box.className='day-box';
     box.textContent=d.day;
-    if(d.dateObj<today) box.classList.add('passed-day');
-    if(d.dateObj.getDay()===0) box.classList.add('sunday-day'); // domingo resaltado
-    const currentWeek=Math.min(Math.floor((d.dateObj-new Date(data.startDate))/(1000*60*60*24*7))+1,48);
-    if(currentWeek===data.week && d.dateObj<=today) box.classList.add('current-day');
+
+    if(d.dateObj < today) box.classList.add('passed-day');
+    if(d.dateObj.getDay()===0) box.classList.add('sunday-day');
+    if(d.dateObj.toDateString() === start.toDateString()) box.classList.add('start-day');
+    const currentWeek = Math.min(Math.floor((d.dateObj - start)/(1000*60*60*24*7)) + 1, 48);
+    if(currentWeek === data.week && d.dateObj <= today) box.classList.add('current-day');
+
     monthRow.appendChild(box);
   });
   calendarContainer.appendChild(monthRow);
 }
 
-// --- Cargar planta ---
 function loadPlant(id){
   currentPlant=id;
   const data=plantsData[id];
@@ -223,10 +222,8 @@ function loadPlant(id){
   generateCalendar(id);
 }
 
-// --- Guardar ---
 function savePlantData(id){ localStorage.setItem(id,JSON.stringify(plantsData[id])); }
 
-// --- Actualizar y guardar ---
 document.getElementById('updateBtn').addEventListener('click',()=>{
   const data=plantsData[currentPlant];
   data.startDate=corregirFecha(startDateInput.value);
@@ -240,10 +237,8 @@ document.getElementById('updateBtn').addEventListener('click',()=>{
   loadPlant(currentPlant);
 });
 
-// --- Cambiar planta ---
 plantSelect.addEventListener('change',()=>loadPlant(plantSelect.value));
 
-// --- Dashboard ---
 document.getElementById('showDashboard').addEventListener('click',()=>{
   dashboard.style.display='block';
   dashboardGrid.innerHTML='';
@@ -257,7 +252,6 @@ document.getElementById('showDashboard').addEventListener('click',()=>{
   }
 });
 
-// --- Inicializar plantas ---
 for(let i=1;i<=NUM_PLANTS;i++){
   const id='Planta'+String(i).padStart(2,'0');
   plantsData[id]=JSON.parse(localStorage.getItem(id))||{
