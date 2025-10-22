@@ -2,49 +2,24 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>25 Plantas - Calendario y Etapas</title>
+<title>Seguimiento Diario de Plantas</title>
 <style>
-body { font-family: Arial; background:#000; color:#f00; padding:20px; }
-h2 { text-align:center; margin-bottom:20px; color:#f00; }
+body { font-family: Arial; background:#000; color:#f00; margin:0; padding:20px; }
+h2 { text-align:center; color:#f00; margin-bottom:20px; }
 
-.selection-panel {
-  display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:15px;
-}
-.selection-panel select, .selection-panel input, .selection-panel button {
-  padding:5px; border-radius:4px; border:1px solid #f00; background:#000; color:#f00; cursor:pointer;
-}
-.selection-panel button:hover, .selection-panel select:hover, .selection-panel input:hover { background:#f00; color:#000; }
+.container { display:flex; gap:20px; flex-wrap:wrap; justify-content:center; }
+.left-panel { width:280px; background:#111; padding:10px; border-radius:8px; box-shadow:0 0 10px rgba(255,0,0,0.5); display:flex; flex-direction:column; gap:8px; }
+.left-panel label { display:flex; justify-content:space-between; margin-bottom:3px; }
+.left-panel input { width:120px; text-align:right; border-radius:4px; border:1px solid #f00; background:#000; color:#f00; padding:2px; }
 
-.main-container { display:flex; gap:20px; flex-wrap: wrap; justify-content:center; }
-.viewer { width:500px; height:350px; background:#111; border-radius:12px; box-shadow:0 4px 12px rgba(255,0,0,0.3); display:flex; align-items:center; justify-content:center; }
-.plant-img { width:100%; height:100%; object-fit:contain; border-radius:8px; border:2px solid #f00; }
-
-.info-panel { width:500px; background:#111; border-radius:12px; box-shadow:0 4px 12px rgba(255,0,0,0.3); padding:10px; display:flex; flex-direction:column; gap:5px; color:#f00; }
-.info-item { display:flex; justify-content:space-between; margin-bottom:3px; }
-select, input { width:120px; text-align:right; border-radius:4px; border:1px solid #f00; background:#000; color:#f00; }
-button { margin-top:5px; padding:5px; border-radius:4px; border:1px solid #f00; background:#000; color:#f00; cursor:pointer; font-size:12px; }
+button { padding:5px; border-radius:4px; border:1px solid #f00; background:#000; color:#f00; cursor:pointer; margin-top:5px; }
 button:hover { background:#f00; color:#000; }
 
-#calendarContainer {
-  margin-top:10px;
-  display:grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap:4px;
-}
-.day-box {
-  width:60px;
-  height:60px;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-  border-radius:6px;
-  font-size:12px;
-  cursor:pointer;
-  border:1px solid #f00;
-  background:#111;
-  color:#f00;
-}
+.viewer { flex:1; background:#111; border-radius:12px; box-shadow:0 0 15px rgba(255,0,0,0.5); display:flex; justify-content:center; align-items:center; }
+.plant-img { width:100%; height:100%; object-fit:contain; border:2px solid #f00; border-radius:8px; }
+
+#calendarContainer { display:grid; grid-template-columns:repeat(7,1fr); gap:3px; margin-top:10px; max-height:500px; overflow-y:auto; }
+.day-box { width:60px; height:60px; display:flex; flex-direction:column; justify-content:center; align-items:center; font-size:12px; border-radius:6px; border:1px solid #f00; background:#111; color:#f00; }
 .current-day { border:2px solid #f00; background:#f00; color:#000; }
 .stage-germinacion { background:#550000; }
 .stage-plantula { background:#770000; }
@@ -53,63 +28,62 @@ button:hover { background:#f00; color:#000; }
 .stage-floracion-final { background:#dd0000; }
 .stage-cosecha { background:#ff0000; }
 
-#dashboard { display:none; margin-top:20px; }
-.dashboard-grid { display:grid; grid-template-columns: repeat(5, 1fr); gap:10px; }
-.plant-card { padding:5px; border-radius:6px; background:#111; box-shadow:0 2px 8px rgba(255,0,0,0.3); text-align:center; font-size:12px; display:flex; flex-direction:column; align-items:center; color:#f00; }
-.plant-card img { width:80px; height:60px; object-fit:contain; border-radius:4px; margin-bottom:5px; border:1px solid #f00; }
+.selection-panel { display:flex; gap:5px; align-items:center; margin-bottom:10px; flex-wrap:wrap; }
+.selection-panel select,input { padding:3px; border-radius:4px; border:1px solid #f00; background:#000; color:#f00; }
 </style>
 </head>
 <body>
 
-<h2>25 Plantas - Calendario y Etapas</h2>
+<h2>Seguimiento Diario de 25 Plantas</h2>
 
 <div class="selection-panel">
-  <label>Planta:</label>
-  <select id="plantSelect"></select>
-  <label>Fecha inicio:</label>
-  <input type="date" id="startDate">
-  <button id="applyStart">Aplicar</button>
-  <button id="showDashboard">Ver todas las plantas</button>
+  <label>Planta: 
+    <select id="plantSelect"></select>
+  </label>
+  <label>Fecha inicio: 
+    <input type="date" id="startDate">
+  </label>
+  <button id="applyStart">Aplicar fecha</button>
 </div>
 
-<div class="main-container">
+<div class="container">
+  <div class="left-panel">
+    <label>Semana: <input type="number" id="weekInput" disabled></label>
+    <label>Etapa: <input type="text" id="stageInput" disabled></label>
+    <label>Altura (cm): <input type="number" id="heightInput"></label>
+    <label>N: <input type="number" id="nInput"></label>
+    <label>P: <input type="number" id="pInput"></label>
+    <label>K: <input type="number" id="kInput"></label>
+    <label>Días restantes: <input type="text" id="remainingInput" disabled></label>
+    <button id="updateBtn">Actualizar Datos</button>
+    <button id="saveBtn">Guardar Historial</button>
+  </div>
+
   <div class="viewer">
     <img id="plantImg" class="plant-img" src="week01.webp" alt="Planta">
   </div>
-  <div class="info-panel">
-    <div class="info-item"><label>Semana:</label><input type="number" id="weekInput" min="1" max="12" disabled></div>
-    <div class="info-item"><label>Etapa:</label><input type="text" id="stageInput" disabled></div>
-    <div class="info-item"><label>Altura (cm):</label><input type="number" id="heightInput"></div>
-    <div class="info-item"><label>N:</label><input type="number" id="nInput"></div>
-    <div class="info-item"><label>P:</label><input type="number" id="pInput"></div>
-    <div class="info-item"><label>K:</label><input type="number" id="kInput"></div>
-    <button id="updateBtn">Actualizar Datos</button>
-    <button id="saveBtn">Guardar Historial</button>
-    <div id="calendarContainer"></div>
-    <div id="remainingDays"></div>
-  </div>
 </div>
 
-<div id="dashboard">
-  <h3>Dashboard - Todas las plantas</h3>
-  <div class="dashboard-grid" id="dashboardGrid"></div>
-</div>
+<div id="calendarContainer"></div>
 
 <script>
 const NUM_PLANTS=25;
 const plantSelect=document.getElementById('plantSelect');
+const startDateInput=document.getElementById('startDate');
 const plantImg=document.getElementById('plantImg');
 const calendarContainer=document.getElementById('calendarContainer');
-const startDateInput=document.getElementById('startDate');
-const dashboard=document.getElementById('dashboard');
-const dashboardGrid=document.getElementById('dashboardGrid');
+
 const weekInput=document.getElementById('weekInput');
 const stageInput=document.getElementById('stageInput');
 const heightInput=document.getElementById('heightInput');
 const nInput=document.getElementById('nInput');
 const pInput=document.getElementById('pInput');
 const kInput=document.getElementById('kInput');
-const remainingDaysDiv=document.getElementById('remainingDays');
+const remainingInput=document.getElementById('remainingInput');
+
+const updateBtn=document.getElementById('updateBtn');
+const applyStart=document.getElementById('applyStart');
+const saveBtn=document.getElementById('saveBtn');
 
 let plantsData={}, currentPlant='Planta01';
 
@@ -122,7 +96,8 @@ for(let i=1;i<=NUM_PLANTS;i++){
     height:0,
     nutrients:{n:0,p:0,k:0}
   };
-  const option=document.createElement('option'); option.value=id; option.textContent=id;
+  const option=document.createElement('option');
+  option.value=id; option.textContent=id;
   plantSelect.appendChild(option);
 }
 
@@ -135,7 +110,6 @@ function getStageName(week){
   if(week<=11) return 'Floración final / Maduración';
   return 'Cosecha';
 }
-
 function getStageClass(week){
   if(week<=1) return 'stage-germinacion';
   if(week<=3) return 'stage-plantula';
@@ -145,7 +119,7 @@ function getStageClass(week){
   return 'stage-cosecha';
 }
 
-// Calcular semana actual según fecha
+// Calcular semana actual
 function calculateWeek(start){
   const today=new Date();
   const startDate=new Date(start);
@@ -153,8 +127,8 @@ function calculateWeek(start){
   return Math.min(Math.max(Math.floor(diff/7)+1,1),12);
 }
 
-// Generar calendario mensual tipo pared (30 días desde inicio)
-function generateMonthlyCalendar(plantId){
+// Generar calendario diario 30 días
+function generateDailyCalendar(plantId){
   calendarContainer.innerHTML='';
   const data=plantsData[plantId];
   const start=new Date(data.startDate);
@@ -162,7 +136,8 @@ function generateMonthlyCalendar(plantId){
   for(let i=0;i<30;i++){
     const dayDate=new Date(start);
     dayDate.setDate(dayDate.getDate()+i);
-    const weekNum=Math.min(Math.floor(i/7)+1,12);
+    const diff=Math.floor((dayDate-start)/(1000*60*60*24));
+    const weekNum=Math.min(Math.floor(diff/7)+1,12);
     const dayBox=document.createElement('div');
     dayBox.className='day-box '+getStageClass(weekNum);
     dayBox.textContent=dayDate.getDate()+'/'+(dayDate.getMonth()+1);
@@ -176,27 +151,24 @@ function loadPlant(id){
   currentPlant=id;
   const data=plantsData[id];
   startDateInput.value=data.startDate;
-  const week=calculateWeek(data.startDate);
-  data.week=week;
+  data.week=calculateWeek(data.startDate);
   plantsData[id]=data;
   localStorage.setItem(id,JSON.stringify(data));
 
-  weekInput.value=week;
-  stageInput.value=getStageName(week);
-  plantImg.src=`week${String(week).padStart(2,'0')}.webp`;
+  weekInput.value=data.week;
+  stageInput.value=getStageName(data.week);
+  plantImg.src=`week${String(data.week).padStart(2,'0')}.webp`;
   heightInput.value=data.height;
   nInput.value=data.nutrients.n;
   pInput.value=data.nutrients.p;
   kInput.value=data.nutrients.k;
+  remainingInput.value=Math.max(12-data.week,0);
 
-  const remaining=Math.max(12-week,0);
-  remainingDaysDiv.textContent=`Semanas restantes hasta cosecha: ${remaining}`;
-
-  generateMonthlyCalendar(id);
+  generateDailyCalendar(id);
 }
 
-// Actualizar datos manualmente
-document.getElementById('updateBtn').addEventListener('click',()=>{
+// Actualizar datos
+updateBtn.addEventListener('click',()=>{
   const data=plantsData[currentPlant];
   data.height=parseFloat(heightInput.value);
   data.nutrients={n:parseFloat(nInput.value),p:parseFloat(pInput.value),k:parseFloat(kInput.value)};
@@ -205,26 +177,23 @@ document.getElementById('updateBtn').addEventListener('click',()=>{
   loadPlant(currentPlant);
 });
 
-// Aplicar fecha de inicio
-document.getElementById('applyStart').addEventListener('click',()=>{
+// Aplicar fecha inicio
+applyStart.addEventListener('click',()=>{
   const val=startDateInput.value;
   if(val){ plantsData[currentPlant].startDate=val; localStorage.setItem(currentPlant,JSON.stringify(plantsData[currentPlant])); loadPlant(currentPlant);}
 });
 
-// Selección de planta
+// Selección planta
 plantSelect.addEventListener('change',()=>loadPlant(plantSelect.value));
 
-// Dashboard
-document.getElementById('showDashboard').addEventListener('click',()=>{
-  dashboard.style.display='block'; dashboardGrid.innerHTML='';
-  for(let i=1;i<=NUM_PLANTS;i++){
-    const id='Planta'+String(i).padStart(2,'0');
-    const card=document.createElement('div'); card.className='plant-card';
-    const img=document.createElement('img'); img.src=`week${String(plantsData[id].week).padStart(2,'0')}.webp`; card.appendChild(img);
-    const label=document.createElement('div'); label.textContent=id; card.appendChild(label);
-    card.onclick=()=>{ loadPlant(id); dashboard.style.display='none'; };
-    dashboardGrid.appendChild(card);
-  }
+// Guardar historial
+saveBtn.addEventListener('click',()=>{
+  const blob=new Blob([JSON.stringify(plantsData,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download='plants_history.json';
+  a.click();
+  URL.revokeObjectURL(url);
 });
 
 // Init
