@@ -2,11 +2,11 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>25 Plantas - Calendario Cuadrado Horizontal</title>
+<title>25 Plantas - Calendario Diario</title>
 <style>
 body { font-family: Arial; background:#f0fff0; padding:20px; }
 h2 { text-align:center; margin-bottom:20px; }
-.selection-panel { margin-bottom:15px; display:flex; gap:10px; flex-wrap: wrap; }
+.selection-panel { margin-bottom:15px; display:flex; gap:10px; flex-wrap: wrap; align-items:center; }
 .selection-panel select, .selection-panel input { padding:5px; border-radius:4px; }
 .main-container { display:flex; gap:20px; flex-wrap: wrap; justify-content:center; }
 .viewer { width:400px; height:300px; background:#f7fff7; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1); display:flex; align-items:center; justify-content:center; }
@@ -14,35 +14,18 @@ h2 { text-align:center; margin-bottom:20px; }
 .info-panel { width:320px; background:#fff; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1); padding:10px; display:flex; flex-direction:column; gap:5px; }
 .info-item { display:flex; justify-content:space-between; }
 select, input { width:100px; text-align:right; border-radius:4px; border:1px solid #ccc; padding:2px 4px; }
-.horizontal-calendar {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: 50px;
-  grid-template-rows: 50px;
-  gap: 5px;
-  justify-content: start;
-  margin-top: 10px;
-}
-.week-box {
-  width: 50px;
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 5px;
-  color: #fff;
-  font-weight: bold;
-  cursor: pointer;
-}
-.current-week { border: 2px solid #000; }
-.germinacion { background: #a5d6a7; }
-.plantula { background: #66bb6a; }
-.vegetativo { background: #2e7d32; }
-.floracion_media { background: #ffb74d; color:#000; }
-.floracion_final { background: #f57c00; }
-.cosecha { background: #8d6e63; }
-
 button { margin-top:5px; padding:5px; border-radius:4px; border:none; background:#2e7d32; color:white; cursor:pointer; font-size:12px; }
+
+#calendarContainer { display:flex; flex-direction:column; gap:10px; max-height:400px; overflow-x:auto; padding-top:10px;}
+.month-row { display:grid; grid-template-columns: repeat(31, 30px); gap:2px; align-items:center; }
+.day-box { width:30px; height:30px; display:flex; justify-content:center; align-items:center; border-radius:4px; font-size:10px; cursor:pointer; }
+.germinacion { background:#a5d6a7; }
+.plantula { background:#66bb6a; }
+.vegetativo { background:#2e7d32; }
+.floracion_media { background:#ffb74d; color:#000; }
+.floracion_final { background:#f57c00; }
+.cosecha { background:#8d6e63; }
+.current-day { border:2px solid #000; }
 
 #dashboard { display:none; margin-top:20px; }
 .dashboard-grid { display:grid; grid-template-columns: repeat(5, 1fr); gap:10px; }
@@ -52,7 +35,7 @@ button { margin-top:5px; padding:5px; border-radius:4px; border:none; background
 </head>
 <body>
 
-<h2>25 Plantas - Calendario Cuadrado Horizontal</h2>
+<h2>25 Plantas - Calendario Diario</h2>
 
 <div class="selection-panel">
   <label>Planta:</label>
@@ -85,7 +68,7 @@ button { margin-top:5px; padding:5px; border-radius:4px; border:none; background
     <div class="info-item"><label>K:</label><input type="number" id="kInput"></div>
     <button id="updateBtn">Actualizar Datos</button>
     <button id="saveBtn">Guardar Historial</button>
-    <div id="horizontalCalendar" class="horizontal-calendar"></div>
+    <div id="calendarContainer"></div>
   </div>
 </div>
 
@@ -104,16 +87,13 @@ const heightInput=document.getElementById('heightInput');
 const nInput=document.getElementById('nInput');
 const pInput=document.getElementById('pInput');
 const kInput=document.getElementById('kInput');
-const horizontalCalendar=document.getElementById('horizontalCalendar');
+const calendarContainer=document.getElementById('calendarContainer');
 const startDateInput=document.getElementById('startDate');
 const dashboard=document.getElementById('dashboard');
 const dashboardGrid=document.getElementById('dashboardGrid');
 
-let startDateValue=new Date();
-let plantsData={};
-let currentPlant='Planta01';
+let plantsData={}, currentPlant='Planta01', startDateValue=new Date();
 
-// Inicializar plantas y combobox
 for(let i=1;i<=NUM_PLANTS;i++){
   const id='Planta'+String(i).padStart(2,'0');
   plantsData[id]=JSON.parse(localStorage.getItem(id))||{week:1,stage:'Germinación',height:0,nutrients:{n:0,p:0,k:0},history:[]};
@@ -140,22 +120,7 @@ function getStageClass(stage){
   }
 }
 
-// Genera calendario horizontal en cuadros cuadrados
-function generateHorizontalCalendar(plantId){
-  horizontalCalendar.innerHTML='';
-  const data=plantsData[plantId];
-  for(let w=1; w<=12; w++){
-    const box=document.createElement('div');
-    box.className='week-box '+getStageClass(getStage(w));
-    box.textContent=w;
-    if(w===data.week) box.classList.add('current-week');
-    box.onclick=()=>{ loadWeek(plantId,w); };
-    horizontalCalendar.appendChild(box);
-  }
-}
-
-// Carga datos de semana/planta
-function loadWeek(plantId,week){
+function loadWeek(plantId, week){
   const data=plantsData[plantId];
   data.week=week;
   data.stage=getStage(week);
@@ -168,11 +133,37 @@ function loadWeek(plantId,week){
   pInput.value=data.nutrients.p;
   kInput.value=data.nutrients.k;
   plantImg.src=`week${String(data.week).padStart(2,'0')}.webp`;
-  generateHorizontalCalendar(plantId);
+  generateCalendar(plantId);
   localStorage.setItem(plantId,JSON.stringify(data));
 }
 
 function loadPlant(plantId){ currentPlant=plantId; loadWeek(plantId,plantsData[plantId].week); }
+
+function generateCalendar(plantId){
+  calendarContainer.innerHTML='';
+  const data=plantsData[plantId];
+  let weekStart=new Date(startDateValue);
+  for(let monthOffset=0; monthOffset<4; monthOffset++){
+    const monthRow=document.createElement('div'); monthRow.className='month-row';
+    const monthDate=new Date(weekStart.getFullYear(),weekStart.getMonth()+monthOffset,1);
+    const monthLabel=document.createElement('div');
+    monthLabel.textContent=monthDate.toLocaleString('es-ES',{month:'short'});
+    monthLabel.style.gridColumn='span 31'; monthLabel.style.fontWeight='bold';
+    calendarContainer.appendChild(monthLabel);
+    for(let d=1;d<=31;d++){
+      const dayDate=new Date(weekStart.getFullYear(),weekStart.getMonth()+monthOffset,d);
+      if(dayDate.getMonth() !== (weekStart.getMonth()+monthOffset)%12) continue;
+      const dayBox=document.createElement('div');
+      const weekNum=Math.ceil((dayDate-startDateValue)/7)+1;
+      dayBox.className='day-box '+getStageClass(getStage(weekNum));
+      dayBox.textContent=d;
+      if(weekNum===data.week) dayBox.classList.add('current-day');
+      dayBox.onclick=()=>loadWeek(plantId,weekNum);
+      monthRow.appendChild(dayBox);
+    }
+    calendarContainer.appendChild(monthRow);
+  }
+}
 
 // Eventos
 plantSelect.addEventListener('change',()=>loadPlant(plantSelect.value));
@@ -189,7 +180,7 @@ document.getElementById('saveBtn').addEventListener('click',()=>{
   localStorage.setItem(currentPlant,JSON.stringify(data));
   alert(`Historial guardado para ${currentPlant}`);
 });
-document.getElementById('applyStart').addEventListener('click',()=>{ startDateValue=new Date(startDateInput.value); generateHorizontalCalendar(currentPlant); });
+document.getElementById('applyStart').addEventListener('click',()=>{ startDateValue=new Date(startDateInput.value); generateCalendar(currentPlant); });
 document.getElementById('showDashboard').addEventListener('click',()=>{
   dashboard.style.display='block';
   dashboardGrid.innerHTML='';
