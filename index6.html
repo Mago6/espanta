@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>25 Plantas - Calendario Mensual</title>
+<title>25 Plantas - Dashboard con imágenes</title>
 <style>
 body { font-family: Arial; background:#f0fff0; padding:20px; }
 h2 { text-align:center; margin-bottom:20px; }
@@ -26,13 +26,14 @@ select, input { width:100px; text-align:right; border-radius:4px; border:1px sol
 button { margin-top:5px; padding:5px; border-radius:4px; border:none; background:#2e7d32; color:white; cursor:pointer; font-size:12px; }
 #dashboard { display:none; margin-top:20px; }
 .dashboard-grid { display:grid; grid-template-columns: repeat(5, 1fr); gap:10px; }
-.plant-card { padding:5px; border-radius:6px; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,0.1); text-align:center; font-size:12px; }
+.plant-card { padding:5px; border-radius:6px; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,0.1); text-align:center; font-size:12px; display:flex; flex-direction:column; align-items:center; }
+.plant-card img { width:80px; height:60px; object-fit:contain; border-radius:4px; margin-bottom:5px; }
 .month-label { grid-column: span 7; text-align:center; font-weight:bold; margin-top:5px; }
 </style>
 </head>
 <body>
 
-<h2>Gestión Avanzada 25 Plantas - Calendario Mensual</h2>
+<h2>25 Plantas - Dashboard con imágenes</h2>
 
 <div class="selection-panel">
   <label>Planta:</label>
@@ -103,15 +104,7 @@ for(let i=1;i<=NUM_PLANTS;i++){
 for(let i=1;i<=12;i++){ const option=document.createElement('option'); option.value=i; option.textContent=i; weekSelect.appendChild(option); }
 
 function randomRange(min,max){ return Math.round(min+Math.random()*(max-min)); }
-
-function getStage(week){
-  if(week<=1) return 'Germinación';
-  if(week<=3) return 'Plántula';
-  if(week<=7) return 'Vegetativo';
-  if(week===8||week===9) return 'Floración media';
-  if(week<=11) return 'Floración final / Maduración';
-  return 'Cosecha';
-}
+function getStage(week){ if(week<=1) return 'Germinación'; if(week<=3) return 'Plántula'; if(week<=7) return 'Vegetativo'; if(week===8||week===9) return 'Floración media'; if(week<=11) return 'Floración final / Maduración'; return 'Cosecha'; }
 function getStageClass(stage){ switch(stage){ case'Germinación':return'germinacion'; case'Plántula':return'plantula'; case'Vegetativo':return'vegetativo'; case'Floración media':return'floracion_media'; case'Floración final / Maduración':return'floracion_final'; case'Cosecha':return'cosecha'; } }
 
 function generateMiniCalendar(plantId){
@@ -132,7 +125,6 @@ function generateMiniCalendar(plantId){
       const diffDays=Math.floor((currentDay-startDateValue)/(1000*60*60*24));
       let week=Math.floor(diffDays/7)+1;
       if(week<1) week=1; if(week>12) week=12;
-
       const dayBox=document.createElement('div');
       dayBox.className='day-box '+getStageClass(getStage(week));
       dayBox.textContent=d;
@@ -153,6 +145,7 @@ function loadWeek(plantId,week){
   heightInput.value=data.height; nInput.value=data.nutrients.n; pInput.value=data.nutrients.p; kInput.value=data.nutrients.k;
   plantImg.src=`week${String(data.week).padStart(2,'0')}.webp`;
   generateMiniCalendar(plantId);
+  localStorage.setItem(plantId,JSON.stringify(data));
 }
 
 function loadPlant(plantId){ currentPlant=plantId; const data=plantsData[plantId]; loadWeek(plantId,data.week); }
@@ -162,7 +155,7 @@ document.getElementById('updateBtn').addEventListener('click',()=>{
   data.week=parseInt(weekSelect.value); data.stage=stageSelect.value;
   data.height=parseFloat(heightInput.value);
   data.nutrients={n:parseFloat(nInput.value),p:parseFloat(pInput.value),k:parseFloat(kInput.value)};
-  generateMiniCalendar(currentPlant);
+  loadWeek(currentPlant,data.week);
 });
 
 document.getElementById('saveBtn').addEventListener('click',()=>{
@@ -186,7 +179,7 @@ document.getElementById('showDashboard').addEventListener('click',()=>{
     const id='Planta'+String(i).padStart(2,'0');
     const data=plantsData[id];
     const card=document.createElement('div'); card.className='plant-card';
-    card.innerHTML=`<b>${id}</b><br>Semana: ${data.week}<br>Etapa: ${data.stage}`;
+    card.innerHTML=`<img src="week${String(data.week).padStart(2,'0')}.webp"><b>${id}</b><br>Semana: ${data.week}<br>Etapa: ${data.stage}`;
     dashboardGrid.appendChild(card);
   }
 });
