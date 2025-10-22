@@ -27,6 +27,7 @@ h2 { text-align:center; margin-bottom:20px; color:#f00; }
 .current-day { border:2px solid #f00; background:#f00; color:#000; }
 
 #remainingDays { margin-top:10px; font-weight:bold; color:#0f0; }
+#currentStage { margin-top:5px; font-weight:bold; color:#0f0; }
 
 #dashboard { display:none; margin-top:20px; }
 .dashboard-grid { display:grid; grid-template-columns: repeat(5, 1fr); gap:10px; }
@@ -69,6 +70,7 @@ h2 { text-align:center; margin-bottom:20px; color:#f00; }
       <div><label>K:</label><input type="number" id="kInput"></div>
     </div>
     <div id="remainingDays"></div>
+    <div id="currentStage"></div>
   </div>
   <div id="calendarContainer"></div>
 </div>
@@ -93,6 +95,7 @@ const calendarContainer=document.getElementById('calendarContainer');
 const dashboard=document.getElementById('dashboard');
 const dashboardGrid=document.getElementById('dashboardGrid');
 const remainingDaysDiv=document.getElementById('remainingDays');
+const currentStageDiv=document.getElementById('currentStage');
 
 let plantsData={}, currentPlant='Planta01';
 
@@ -176,7 +179,12 @@ function loadPlant(id){
   data.stage=getStageNameExterior(data.week);
   stageSelect.value=data.stage;
   weekInput.value=data.week;
-  plantImg.src=`week${String(Math.min(data.week,12)).padStart(2,'0')}.webp`;
+
+  // Actualizar imagen según semana
+  let imgWeek=Math.min(data.week,12); // limitamos a week12.webp para evitar error
+  plantImg.src=`week${String(imgWeek).padStart(2,'0')}.webp`;
+
+  // Altura y NPK
   heightInput.value=data.height;
   nInput.value=data.nutrients.n;
   pInput.value=data.nutrients.p;
@@ -184,6 +192,13 @@ function loadPlant(id){
 
   const remaining=Math.max(32-data.week,0);
   remainingDaysDiv.textContent=`Semanas restantes hasta cosecha: ${remaining}`;
+  currentStageDiv.textContent=`Etapa actual: ${data.stage}`;
+
+  // Ajustar peso tras cosecha
+  if(data.stage==='Cosecha'){
+    const reducedHeight=Math.round(data.height*0.7);
+    heightInput.value=reducedHeight;
+  }
 
   generateCalendarExterior(id);
 }
@@ -197,7 +212,14 @@ document.getElementById('updateBtn').addEventListener('click',()=>{
   data.week=parseInt(weekInput.value);
   data.stage=getStageNameExterior(data.week);
   stageSelect.value=data.stage;
-  data.height=parseFloat(heightInput.value);
+
+  // Calcular peso si etapa es cosecha
+  if(data.stage==='Cosecha'){
+    data.height=Math.round(parseFloat(heightInput.value)*0.7);
+  } else {
+    data.height=parseFloat(heightInput.value);
+  }
+
   data.nutrients={n:parseFloat(nInput.value),p:parseFloat(pInput.value),k:parseFloat(kInput.value)};
   plantsData[currentPlant]=data;
   localStorage.setItem(currentPlant, JSON.stringify(data));
