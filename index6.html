@@ -12,14 +12,12 @@ h2 { text-align:center; margin-bottom:20px; color:#f00; }
 .selection-panel button:hover, .selection-panel select:hover, .selection-panel input:hover { background:#f00; color:#000; }
 
 .main-container { display:flex; gap:20px; flex-wrap: wrap; justify-content:center; }
+.viewer-container { display:flex; flex-direction:column; align-items:center; gap:10px; }
 .viewer { width:500px; height:350px; background:#111; border-radius:12px; display:flex; align-items:center; justify-content:center; }
 .plant-img { width:100%; height:100%; object-fit:contain; border-radius:8px; border:2px solid #f00; }
 
-.info-panel { width:500px; background:#111; border-radius:12px; padding:10px; display:flex; flex-direction:column; gap:5px; color:#f00; }
-.info-item { display:flex; justify-content:space-between; margin-bottom:3px; }
-select, input { width:120px; text-align:right; border-radius:4px; border:1px solid #f00; background:#000; color:#f00; }
-button { margin-top:5px; padding:5px; border-radius:4px; border:1px solid #f00; background:#000; color:#f00; cursor:pointer; font-size:12px; }
-button:hover { background:#f00; color:#000; }
+.npk-panel { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-top:5px; }
+.npk-panel input { width:80px; text-align:right; border-radius:4px; border:1px solid #f00; background:#000; color:#f00; }
 
 #calendarContainer { margin-top:10px; display:flex; flex-direction:column; gap:5px; overflow-x:auto; }
 .month-row { display:flex; gap:2px; flex-wrap:wrap; align-items:center; }
@@ -46,8 +44,8 @@ button:hover { background:#f00; color:#000; }
 <div class="selection-panel">
   <label>Planta:</label>
   <select id="plantSelect"></select>
-  <label>Semana:</label>
-  <input type="number" id="weekInput" min="1" max="12">
+  <label>Fecha inicio:</label>
+  <input type="date" id="startDate">
   <label>Etapa:</label>
   <select id="stageSelect">
     <option>Germinación</option>
@@ -57,24 +55,23 @@ button:hover { background:#f00; color:#000; }
     <option>Floración final / Maduración</option>
     <option>Cosecha</option>
   </select>
-  <label>Fecha inicio:</label>
-  <input type="date" id="startDate">
   <button id="updateBtn">Actualizar y Guardar Planta</button>
   <button id="showDashboard">Ver todas las plantas</button>
 </div>
 
 <div class="main-container">
-  <div class="viewer">
-    <img id="plantImg" class="plant-img" src="week01.webp" alt="Planta">
+  <div class="viewer-container">
+    <div class="viewer">
+      <img id="plantImg" class="plant-img" src="week01.webp" alt="Planta">
+    </div>
+    <div class="npk-panel">
+      <div><label>Altura (cm):</label><input type="number" id="heightInput"></div>
+      <div><label>N:</label><input type="number" id="nInput"></div>
+      <div><label>P:</label><input type="number" id="pInput"></div>
+      <div><label>K:</label><input type="number" id="kInput"></div>
+    </div>
   </div>
-  <div class="info-panel">
-    <div class="info-item"><label>Altura (cm):</label><input type="number" id="heightInput"></div>
-    <div class="info-item"><label>N:</label><input type="number" id="nInput"></div>
-    <div class="info-item"><label>P:</label><input type="number" id="pInput"></div>
-    <div class="info-item"><label>K:</label><input type="number" id="kInput"></div>
-    <div id="calendarContainer"></div>
-    <div id="remainingDays"></div>
-  </div>
+  <div id="calendarContainer"></div>
 </div>
 
 <div id="dashboard">
@@ -85,7 +82,6 @@ button:hover { background:#f00; color:#000; }
 <script>
 const NUM_PLANTS=25;
 const plantSelect=document.getElementById('plantSelect');
-const weekInput=document.getElementById('weekInput');
 const stageSelect=document.getElementById('stageSelect');
 const plantImg=document.getElementById('plantImg');
 const startDateInput=document.getElementById('startDate');
@@ -94,7 +90,6 @@ const nInput=document.getElementById('nInput');
 const pInput=document.getElementById('pInput');
 const kInput=document.getElementById('kInput');
 const calendarContainer=document.getElementById('calendarContainer');
-const remainingDaysDiv=document.getElementById('remainingDays');
 const dashboard=document.getElementById('dashboard');
 const dashboardGrid=document.getElementById('dashboardGrid');
 
@@ -137,7 +132,7 @@ function calculateWeek(start){
   return Math.min(Math.max(Math.floor(diff/7)+1,1),12);
 }
 
-// Generar calendario mensual tipo pared (todos los días del mes)
+// Generar calendario mensual tipo pared (todos los días)
 function generateCalendar(plantId){
   calendarContainer.innerHTML='';
   const data=plantsData[plantId];
@@ -147,15 +142,15 @@ function generateCalendar(plantId){
   let monthYear=date.getFullYear();
   let monthDays=[];
 
-  for(let i=0;i<365;i++){ // un año completo
+  for(let i=0;i<365;i++){
     if(date.getMonth()!==monthStart){
-      // renderizar mes anterior
       const monthRow=document.createElement('div'); monthRow.className='month-row';
       const monthLabel=document.createElement('div'); monthLabel.className='month-label';
       monthLabel.textContent=new Date(monthYear, monthStart).toLocaleString('es-ES',{month:'short'});
       monthRow.appendChild(monthLabel);
       monthDays.forEach(d=>{
-        const box=document.createElement('div'); box.className='day-box '+getStageClass(d.week);
+        const box=document.createElement('div'); 
+        box.className='day-box '+getStageClass(d.week);
         box.textContent=d.day;
         if(d.week===data.week) box.classList.add('current-day');
         monthRow.appendChild(box);
@@ -169,7 +164,6 @@ function generateCalendar(plantId){
     monthDays.push({day:date.getDate(), week:weekNum});
     date.setDate(date.getDate()+1);
   }
-  // último mes
   if(monthDays.length>0){
     const monthRow=document.createElement('div'); monthRow.className='month-row';
     const monthLabel=document.createElement('div'); monthLabel.className='month-label';
@@ -178,16 +172,11 @@ function generateCalendar(plantId){
     monthDays.forEach(d=>{
       const box=document.createElement('div'); box.className='day-box '+getStageClass(d.week);
       box.textContent=d.day;
-      if(d.week===plantsData[plantId].week) box.classList.add('current-day');
+      if(d.week===data.week) box.classList.add('current-day');
       monthRow.appendChild(box);
     });
     calendarContainer.appendChild(monthRow);
   }
-}
-
-// Guardar datos en JSON
-function savePlantData(id){
-  localStorage.setItem(id, JSON.stringify(plantsData[id]));
 }
 
 // Cargar planta
@@ -195,50 +184,31 @@ function loadPlant(id){
   currentPlant=id;
   const data=plantsData[id];
   startDateInput.value=data.startDate;
-  weekInput.value=calculateWeek(data.startDate);
-  data.week=weekInput.value;
+  data.week=calculateWeek(data.startDate);
   data.stage=getStageName(data.week);
   stageSelect.value=data.stage;
+
   plantImg.src=`week${String(data.week).padStart(2,'0')}.webp`;
   heightInput.value=data.height;
   nInput.value=data.nutrients.n;
   pInput.value=data.nutrients.p;
   kInput.value=data.nutrients.k;
 
-  const remaining=Math.max(12-data.week,0);
-  remainingDaysDiv.textContent=`Semanas restantes hasta cosecha: ${remaining}`;
-
   generateCalendar(id);
 }
 
-// Botón actualizar/guardar
+// Guardar planta
+function savePlantData(id){
+  localStorage.setItem(id, JSON.stringify(plantsData[id]));
+}
+
+// Eventos
 document.getElementById('updateBtn').addEventListener('click',()=>{
   const data=plantsData[currentPlant];
   data.startDate=startDateInput.value;
-  data.week=parseInt(weekInput.value);
   data.stage=stageSelect.value;
-  data.height=parseFloat(heightInput.value);
-  data.nutrients={n:parseFloat(nInput.value),p:parseFloat(pInput.value),k:parseFloat(kInput.value)};
-  data.history.push({date:new Date().toISOString(), week:data.week, stage:data.stage, height:data.height, nutrients:{...data.nutrients}});
-  savePlantData(currentPlant);
-  loadPlant(currentPlant);
-});
-
-// Cambios en semana y etapa manual
-weekInput.addEventListener('change',()=>{
-  const data=plantsData[currentPlant];
-  data.week=parseInt(weekInput.value);
-  data.stage=getStageName(data.week);
-  stageSelect.value=data.stage;
-  savePlantData(currentPlant);
-  loadPlant(currentPlant);
-});
-stageSelect.addEventListener('change',()=>{
-  const data=plantsData[currentPlant];
-  const stage=stageSelect.value;
-  data.stage=stage;
   // Ajustar semana según etapa
-  switch(stage){
+  switch(stageSelect.value){
     case 'Germinación': data.week=1; break;
     case 'Plántula': data.week=2; break;
     case 'Vegetativo': data.week=5; break;
@@ -246,13 +216,15 @@ stageSelect.addEventListener('change',()=>{
     case 'Floración final / Maduración': data.week=10; break;
     case 'Cosecha': data.week=12; break;
   }
-  weekInput.value=data.week;
+  data.height=parseFloat(heightInput.value);
+  data.nutrients={n:parseFloat(nInput.value),p:parseFloat(pInput.value),k:parseFloat(kInput.value)};
+  data.history.push({date:new Date().toISOString(), week:data.week, stage:data.stage, height:data.height, nutrients:{...data.nutrients}});
   savePlantData(currentPlant);
   loadPlant(currentPlant);
 });
 
-// Selección de planta
 plantSelect.addEventListener('change',()=>loadPlant(plantSelect.value));
+stageSelect.addEventListener('change',()=>loadPlant(currentPlant));
 
 // Dashboard
 document.getElementById('showDashboard').addEventListener('click',()=>{
@@ -273,5 +245,6 @@ document.getElementById('showDashboard').addEventListener('click',()=>{
 // Init
 loadPlant('Planta01');
 </script>
+
 </body>
 </html>
