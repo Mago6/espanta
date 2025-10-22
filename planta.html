@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Crecimiento de la Planta</title>
+  <style>
+    body {
+      background: linear-gradient(to top, #e0f7fa, #ffffff);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: Arial, sans-serif;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    .container {
+      position: relative;
+      width: 600px;
+      height: 400px;
+      overflow: hidden;
+    }
+
+    .plant {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      transition: all 2s ease-in-out;
+    }
+
+    .controls {
+      margin-top: 20px;
+    }
+
+    button {
+      margin: 5px;
+      padding: 10px 20px;
+      border: none;
+      background-color: #4caf50;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #388e3c;
+    }
+  </style>
+</head>
+<body>
+  <h1>Simulación de Crecimiento de la Planta 🌱</h1>
+
+  <div class="container">
+    <img id="plant" class="plant" src="https://cdn-icons-png.flaticon.com/512/4277/4277281.png" width="80">
+  </div>
+
+  <div class="controls">
+    <button onclick="growPlant()">Crecimiento +</button>
+    <button onclick="resetPlant()">Reiniciar</button>
+  </div>
+
+  <script>
+    const plant = document.getElementById('plant');
+    let stage = 0;
+
+    // Imágenes para las etapas (puedes reemplazarlas por las tuyas)
+    const stages = [
+      'https://cdn-icons-png.flaticon.com/512/4277/4277281.png', // Plántula
+      'https://cdn-icons-png.flaticon.com/512/4277/4277280.png', // Vegetativo
+      'https://cdn-icons-png.flaticon.com/512/4277/4277283.png', // Floración
+      'https://cdn-icons-png.flaticon.com/512/4277/4277282.png'  // Maduración
+    ];
+
+    function growPlant() {
+      if (stage < stages.length - 1) {
+        stage++;
+        plant.src = stages[stage];
+        plant.style.width = `${80 + stage * 60}px`;
+      }
+    }
+
+    function resetPlant() {
+      stage = 0;
+      plant.src = stages[0];
+      plant.style.width = '80px';
+    }
+  </script>
+</body>
+</html>
