@@ -1,84 +1,68 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <title>Ciclo 12 semanas - Planta</title>
 <style>
-  body { 
-    font-family: Arial, sans-serif; 
-    display:flex; 
-    flex-direction:column; 
-    align-items:center; 
-    padding:20px; 
-    background:#f0fff0;
-  }
-  h2 { margin-bottom:20px; }
-  .container {
-    display:flex;
-    gap:20px;
-    width:900px;
-  }
-  .viewer { 
-    flex:1;
-    height:700px; 
-    display:flex; 
-    align-items:center; 
-    justify-content:center; 
-    background:#f7fff7; 
-    border-radius:12px; 
-    box-shadow:0 6px 20px rgba(0,0,0,0.12); 
-    overflow:hidden; 
-  }
-  .plant-img { 
-    width:100%; 
-    height:100%; 
-    object-fit:contain; 
-    transition: opacity 0.8s ease, transform 1s ease; 
-  }
-  .info-panel {
-    width:250px;
-    background:#fff;
-    border-radius:12px;
-    box-shadow:0 4px 12px rgba(0,0,0,0.1);
-    padding:15px;
-    display:flex;
-    flex-direction:column;
-    gap:8px;
-  }
-  .info-item { display:flex; justify-content:space-between; align-items:center; }
-  input { width:80px; text-align:right; border-radius:4px; border:1px solid #ccc; padding:2px 4px;}
-  .controls { 
-    margin-top:12px; 
-    display:flex; 
-    gap:10px; 
-    align-items:center; 
-  }
-  button { 
-    padding:10px 14px; 
-    border-radius:8px; 
-    border:none; 
-    background:#2e7d32; 
-    color:white; 
-    cursor:pointer;
-  }
-  .range { width:400px; }
+body { font-family: Arial; display:flex; flex-direction:column; align-items:center; padding:20px; background:#f0fff0;}
+h2 { margin-bottom:20px; }
+.main-container { display:flex; gap:20px; width:1000px; }
+.mini-calendar { width:150px; background:#fff; border-radius:12px; padding:10px; box-shadow:0 4px 12px rgba(0,0,0,0.1); display:flex; flex-direction:column; gap:4px; font-size:14px;}
+.mini-week { display:flex; justify-content:space-between; padding:3px 6px; border-radius:6px; }
+.mini-week.past { background:#a5d6a7; color:#000; }
+.mini-week.current { background:#2e7d32; color:#fff; font-weight:bold; }
+.mini-week.future { background:#e0e0e0; color:#666; }
+
+.container { display:flex; gap:20px; flex:1; }
+.viewer { flex:1; height:500px; display:flex; align-items:center; justify-content:center; background:#f7fff7; border-radius:12px; box-shadow:0 6px 20px rgba(0,0,0,0.12); overflow:hidden; }
+.plant-img { width:100%; height:100%; object-fit:contain; transition: opacity 0.8s ease; }
+
+.info-panel { width:250px; background:#fff; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1); padding:15px; display:flex; flex-direction:column; gap:8px; }
+.info-item { display:flex; justify-content:space-between; align-items:center; }
+input, select { width:80px; text-align:right; border-radius:4px; border:1px solid #ccc; padding:2px 4px; }
+
+.controls { margin-top:12px; display:flex; gap:10px; align-items:center; }
+button { padding:10px 14px; border-radius:8px; border:none; background:#2e7d32; color:white; cursor:pointer; }
+.range { width:400px; }
+
 </style>
 </head>
 <body>
+
 <h2>Animación Ciclo 12 Semanas</h2>
 
-<div class="container">
-  <div class="viewer">
-    <img id="plantImg" class="plant-img" src="week01.webp" alt="planta semana">
+<div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
+  <label>Selecciona etapa inicial:</label>
+  <select id="startStage">
+    <option value="Germinación">Germinación</option>
+    <option value="Plántula">Plántula</option>
+    <option value="Vegetativo">Vegetativo</option>
+    <option value="Floración media">Floración media</option>
+    <option value="Floración final / Maduración">Floración final / Maduración</option>
+  </select>
+  <label>Fecha inicio:</label>
+  <input type="date" id="startDate" value="">
+  <button id="applyStart">Aplicar</button>
+</div>
+
+<div class="main-container">
+  <div class="mini-calendar" id="miniCalendar">
+    <!-- Aquí se generará el mini calendario -->
   </div>
-  <div class="info-panel">
-    <div class="info-item"><label>Semana:</label><input type="number" id="weekInput" min="1" max="12"></div>
-    <div class="info-item"><label>Etapa:</label><input type="text" id="stageInput"></div>
-    <div class="info-item"><label>Altura (cm):</label><input type="number" id="heightInput"></div>
-    <div class="info-item"><label>N:</label><input type="number" id="nInput"></div>
-    <div class="info-item"><label>P:</label><input type="number" id="pInput"></div>
-    <div class="info-item"><label>K:</label><input type="number" id="kInput"></div>
-    <button id="updateBtn">Actualizar Datos</button>
+
+  <div class="container">
+    <div class="viewer">
+      <img id="plantImg" class="plant-img" src="week01.webp" alt="planta semana">
+    </div>
+    <div class="info-panel">
+      <div class="info-item"><label>Semana:</label><input type="number" id="weekInput" min="1" max="12"></div>
+      <div class="info-item"><label>Etapa:</label><input type="text" id="stageInput"></div>
+      <div class="info-item"><label>Altura (cm):</label><input type="number" id="heightInput"></div>
+      <div class="info-item"><label>N:</label><input type="number" id="nInput"></div>
+      <div class="info-item"><label>P:</label><input type="number" id="pInput"></div>
+      <div class="info-item"><label>K:</label><input type="number" id="kInput"></div>
+      <button id="updateBtn">Actualizar Datos</button>
+    </div>
   </div>
 </div>
 
@@ -93,17 +77,20 @@
 <script>
 const img = document.getElementById('plantImg');
 const range = document.getElementById('weekRange');
-
 const weekInput = document.getElementById('weekInput');
 const stageInput = document.getElementById('stageInput');
 const heightInput = document.getElementById('heightInput');
 const nInput = document.getElementById('nInput');
 const pInput = document.getElementById('pInput');
 const kInput = document.getElementById('kInput');
+const miniCalendar = document.getElementById('miniCalendar');
 
 let current = 1;
 let autoInterval;
+let startStageValue = "Germinación";
+let startDateValue = new Date();
 
+// Funciones
 function randomRange(min,max){ return Math.round(min + Math.random()*(max-min)); }
 
 function getStage(week){
@@ -132,28 +119,51 @@ function getDataForWeek(week){
 function loadWeek(n){
   n=Math.max(1,Math.min(12,n));
   current=n;
-  const filename = `week${String(n).padStart(2,'0')}.webp`; // ruta relativa simple
+  const filename = `week${String(n).padStart(2,'0')}.webp`;
   img.style.opacity=0;
   setTimeout(()=>{
     img.src=filename; img.style.opacity=1;
-
     const data=getDataForWeek(n);
-
     weekInput.value=data.week;
     stageInput.value=data.stage;
     heightInput.value=data.height;
     nInput.value=data.nutrients.n;
     pInput.value=data.nutrients.p;
     kInput.value=data.nutrients.k;
-
     const history=JSON.parse(localStorage.getItem('growthHistory')||'[]');
     history.push(data);
     localStorage.setItem('growthHistory',JSON.stringify(history));
-
     range.value=n;
+    updateMiniCalendar();
   },250);
 }
 
+// Mini calendario
+function updateMiniCalendar(){
+  const today = new Date();
+  const startDate = new Date(startDateValue);
+  const daysDiff = Math.floor((today - startDate)/ (1000*60*60*24));
+  const currentWeek = Math.min(12, Math.max(1, Math.ceil(daysDiff/7)));
+  miniCalendar.innerHTML = "";
+  for(let i=1;i<=12;i++){
+    const div = document.createElement('div');
+    div.className='mini-week '+(i<currentWeek?'past':(i===currentWeek?'current':'future'));
+    div.textContent = `Semana ${i}: ${getStage(i)}`;
+    miniCalendar.appendChild(div);
+  }
+}
+
+// Aplicar etapa y fecha de inicio
+document.getElementById('applyStart').addEventListener('click',()=>{
+  startStageValue = document.getElementById('startStage').value;
+  startDateValue = new Date(document.getElementById('startDate').value);
+  const today = new Date();
+  const daysDiff = Math.floor((today - startDateValue)/ (1000*60*60*24));
+  const weekNow = Math.min(12, Math.max(1, Math.ceil(daysDiff/7)));
+  loadWeek(weekNow);
+});
+
+// Actualiza datos manualmente
 document.getElementById('updateBtn').addEventListener('click',()=>{
   const data={
     week: parseInt(weekInput.value),
@@ -165,12 +175,13 @@ document.getElementById('updateBtn').addEventListener('click',()=>{
   img.src = filename;
   range.value = data.week;
   current = data.week;
-
   const history=JSON.parse(localStorage.getItem('growthHistory')||'[]');
   history.push(data);
   localStorage.setItem('growthHistory',JSON.stringify(history));
+  updateMiniCalendar();
 });
 
+// Controles
 document.getElementById('prev').addEventListener('click',()=>{ if(current>1) loadWeek(current-1); });
 document.getElementById('next').addEventListener('click',()=>{ if(current<12) loadWeek(current+1); });
 document.getElementById('auto').addEventListener('click',()=>{
@@ -185,8 +196,13 @@ document.getElementById('save').addEventListener('click',()=>{
   URL.revokeObjectURL(url);
 });
 
-loadWeek(1);
+// Slider
 range.addEventListener('input',e=>loadWeek(parseInt(e.target.value)));
+
+// Init
+loadWeek(1);
 </script>
+
 </body>
 </html>
+
