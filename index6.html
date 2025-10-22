@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Seguimiento Diario de Plantas - Calendario Anual</title>
+<title>Seguimiento Diario de Plantas</title>
 <style>
 body { font-family: Arial; background:#000; color:#f00; margin:0; padding:20px; }
 h2 { text-align:center; color:#f00; margin-bottom:20px; }
@@ -36,7 +36,7 @@ button:hover { background:#f00; color:#000; }
 </head>
 <body>
 
-<h2>Seguimiento Diario Anual de Plantas</h2>
+<h2>Seguimiento Diario de Plantas</h2>
 
 <div class="selection-panel">
   <label>Planta: 
@@ -129,33 +129,44 @@ function calculateWeek(start){
   return Math.min(Math.max(Math.floor(diff/7)+1,1),12);
 }
 
-// Generar calendario anual
-function generateAnnualCalendar(plantId){
+// Generar calendario diario estilo pared
+function generateCalendar(plantId){
   calendarContainer.innerHTML='';
   const data=plantsData[plantId];
   const start=new Date(data.startDate);
   const today=new Date();
-  for(let month=0;month<12;month++){
-    const monthColumn=document.createElement('div');
-    monthColumn.className='month-column';
-    const monthTitle=document.createElement('div');
-    monthTitle.className='month-title';
-    monthTitle.textContent=new Date(2025,month,1).toLocaleString('es-ES',{month:'long'});
-    monthColumn.appendChild(monthTitle);
 
-    const daysInMonth=new Date(2025,month+1,0).getDate();
-    for(let d=1;d<=daysInMonth;d++){
-      const dayDate=new Date(start);
-      dayDate.setDate(dayDate.getDate() + (month*30)+(d-1)); 
-      const diff=Math.floor((dayDate-start)/(1000*60*60*24));
-      const weekNum=Math.min(Math.floor(diff/7)+1,12);
-      const dayBox=document.createElement('div');
-      dayBox.className='day-box '+getStageClass(weekNum);
-      dayBox.textContent=d;
-      if(dayDate.toDateString()===today.toDateString()) dayBox.classList.add('current-day');
-      monthColumn.appendChild(dayBox);
+  let currentDate = new Date(start);
+  let endDate = new Date(start);
+  endDate.setDate(endDate.getDate()+365); // 1 año
+
+  let monthColumn=null;
+  let currentMonth=-1;
+
+  while(currentDate <= endDate){
+    const month=currentDate.getMonth();
+    if(month!==currentMonth){
+      currentMonth=month;
+      monthColumn=document.createElement('div');
+      monthColumn.className='month-column';
+      const monthTitle=document.createElement('div');
+      monthTitle.className='month-title';
+      monthTitle.textContent=currentDate.toLocaleString('es-ES',{month:'long'});
+      monthColumn.appendChild(monthTitle);
+      calendarContainer.appendChild(monthColumn);
     }
-    calendarContainer.appendChild(monthColumn);
+
+    const diff=Math.floor((currentDate-start)/(1000*60*60*24));
+    const weekNum=Math.min(Math.floor(diff/7)+1,12);
+
+    const dayBox=document.createElement('div');
+    dayBox.className='day-box '+getStageClass(weekNum);
+    dayBox.textContent=currentDate.getDate();
+    if(currentDate.toDateString()===today.toDateString()) dayBox.classList.add('current-day');
+
+    monthColumn.appendChild(dayBox);
+
+    currentDate.setDate(currentDate.getDate()+1);
   }
 }
 
@@ -177,7 +188,7 @@ function loadPlant(id){
   kInput.value=data.nutrients.k;
   remainingInput.value=Math.max(12-data.week,0);
 
-  generateAnnualCalendar(id);
+  generateCalendar(id);
 }
 
 // Actualizar datos
