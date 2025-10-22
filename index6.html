@@ -1,28 +1,249 @@
-function generateMiniCalendar(plantId){
-  const data = plantsData[plantId];
-  miniCalendar.innerHTML = '';
-  const today = new Date(); // Fecha real actual
-  for(let week=1; week<=12; week++){
-    for(let day=0; day<7; day++){
-      const d = new Date(startDateValue);
-      d.setDate(startDateValue.getDate() + (week-1)*7 + day);
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Gestión 25 Plantas - Calendario Mensual</title>
+<style>
+body { font-family: Arial; background:#f0fff0; padding:20px; }
+h2 { text-align:center; margin-bottom:20px; }
 
-      const box = document.createElement('div');
-      box.className='day-box ' + getStageClass(getStage(week));
-      box.title = `Semana ${week} - ${getStage(week)}\n${d.toLocaleDateString()}`;
-      box.textContent = d.getDate();
+.selection-panel { margin-bottom:15px; display:flex; gap:10px; align-items:center; flex-wrap: wrap; }
+.selection-panel select, .selection-panel input { padding:5px; border-radius:4px; }
 
-      // Resaltar la fecha actual real
-      if(today.toDateString() === d.toDateString()) {
-        box.classList.add('current-day');
-      }
+.main-container { display:flex; gap:20px; flex-wrap: wrap; justify-content:center; }
 
-      // Hacer clic para seleccionar semana de la planta
-      box.onclick = () => {
-        loadWeek(plantId, week);
-      };
+.viewer { width:400px; height:300px; background:#f7fff7; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1); display:flex; align-items:center; justify-content:center; }
+.plant-img { width:100%; height:100%; object-fit:contain; border-radius:8px; }
 
-      miniCalendar.appendChild(box);
-    }
+.info-panel { width:300px; background:#fff; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1); padding:10px; display:flex; flex-direction:column; gap:5px; }
+.info-item { display:flex; justify-content:space-between; }
+select, input { width:100px; text-align:right; border-radius:4px; border:1px solid #ccc; padding:2px 4px; }
+
+.mini-calendar { width:100%; display:grid; grid-template-columns: repeat(7, 1fr); gap:2px; margin-top:5px; font-size:10px; }
+.day-box { width:30px; height:30px; display:flex; align-items:center; justify-content:center; border-radius:3px; color:#fff; font-weight:bold; cursor:pointer; }
+.germinacion { background:#a5d6a7; }
+.plantula { background:#66bb6a; }
+.vegetativo { background:#2e7d32; }
+.floracion_media { background:#ffb74d; color:#000; }
+.floracion_final { background:#f57c00; }
+.cosecha { background:#8d6e63; }
+.current-day { border:2px solid #000; }
+
+button { margin-top:5px; padding:5px; border-radius:4px; border:none; background:#2e7d32; color:white; cursor:pointer; font-size:12px; }
+
+#dashboard { display:none; margin-top:20px; }
+.dashboard-grid { display:grid; grid-template-columns: repeat(5, 1fr); gap:10px; }
+.plant-card { padding:5px; border-radius:6px; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,0.1); text-align:center; font-size:12px; }
+</style>
+</head>
+<body>
+
+<h2>Gestión Avanzada 25 Plantas - Calendario Mensual</h2>
+
+<div class="selection-panel">
+  <label>Planta:</label>
+  <select id="plantSelect"></select>
+
+  <label>Semana:</label>
+  <select id="weekSelect"></select>
+
+  <label>Etapa:</label>
+  <select id="stageSelect">
+    <option>Germinación</option>
+    <option>Plántula</option>
+    <option>Vegetativo</option>
+    <option>Floración media</option>
+    <option>Floración final / Maduración</option>
+    <option>Cosecha</option>
+  </select>
+
+  <label>Fecha inicio:</label>
+  <input type="date" id="startDate">
+
+  <button id="applyStart">Aplicar</button>
+  <button id="showDashboard">Ver todas las plantas</button>
+</div>
+
+<div class="main-container">
+  <div class="viewer">
+    <img id="plantImg" class="plant-img" src="week01.webp" alt="Planta">
+  </div>
+
+  <div class="info-panel">
+    <div class="info-item"><label>Altura:</label><input type="number" id="heightInput"></div>
+    <div class="info-item"><label>N:</label><input type="number" id="nInput"></div>
+    <div class="info-item"><label>P:</label><input type="number" id="pInput"></div>
+    <div class="info-item"><label>K:</label><input type="number" id="kInput"></div>
+    <button id="updateBtn">Actualizar Datos</button>
+    <button id="saveBtn">Guardar Historial</button>
+    <div id="miniCalendar" class="mini-calendar"></div>
+  </div>
+</div>
+
+<div id="dashboard">
+  <h3>Dashboard - Todas las plantas</h3>
+  <div class="dashboard-grid" id="dashboardGrid"></div>
+</div>
+
+<script>
+const NUM_PLANTS = 25;
+const plantSelect = document.getElementById('plantSelect');
+const weekSelect = document.getElementById('weekSelect');
+const stageSelect = document.getElementById('stageSelect');
+const plantImg = document.getElementById('plantImg');
+const heightInput = document.getElementById('heightInput');
+const nInput = document.getElementById('nInput');
+const pInput = document.getElementById('pInput');
+const kInput = document.getElementById('kInput');
+const miniCalendar = document.getElementById('miniCalendar');
+const startDateInput = document.getElementById('startDate');
+const dashboard = document.getElementById('dashboard');
+const dashboardGrid = document.getElementById('dashboardGrid');
+
+let startDateValue = new Date();
+let plantsData = {};
+let currentPlant = 'Planta01';
+const today = new Date();
+
+// Inicializar plantas
+for(let i=1;i<=NUM_PLANTS;i++){
+  const id = 'Planta'+String(i).padStart(2,'0');
+  plantsData[id] = JSON.parse(localStorage.getItem(id)) || { week:1, stage:'Germinación', height:0, nutrients:{n:0,p:0,k:0}, history:[] };
+
+  const option = document.createElement('option'); option.value=id; option.textContent=id;
+  plantSelect.appendChild(option);
+}
+
+// Inicializar combobox semanas
+for(let i=1;i<=12;i++){
+  const option = document.createElement('option'); option.value=i; option.textContent=i;
+  weekSelect.appendChild(option);
+}
+
+// Funciones
+function randomRange(min,max){ return Math.round(min + Math.random()*(max-min)); }
+
+function getStage(week){
+  if(week<=1) return 'Germinación';
+  if(week<=3) return 'Plántula';
+  if(week<=7) return 'Vegetativo';
+  if(week===8||week===9) return 'Floración media';
+  if(week<=11) return 'Floración final / Maduración';
+  return 'Cosecha';
+}
+
+function getStageClass(stage){
+  switch(stage){
+    case 'Germinación': return 'germinacion';
+    case 'Plántula': return 'plantula';
+    case 'Vegetativo': return 'vegetativo';
+    case 'Floración media': return 'floracion_media';
+    case 'Floración final / Maduración': return 'floracion_final';
+    case 'Cosecha': return 'cosecha';
   }
 }
+
+function generateMiniCalendar(plantId){
+  miniCalendar.innerHTML = '';
+  const data = plantsData[plantId];
+
+  let date = new Date(startDateValue);
+  for(let m=0;m<6;m++){ // mostrar 6 meses por ejemplo
+    const monthDiv = document.createElement('div');
+    monthDiv.style.gridColumn = 'span 7';
+    monthDiv.style.textAlign='center';
+    monthDiv.style.fontWeight='bold';
+    monthDiv.textContent = date.toLocaleString('default',{month:'long', year:'numeric'});
+    miniCalendar.appendChild(monthDiv);
+
+    const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+    const lastDay = new Date(date.getFullYear(), date.getMonth()+1, 0);
+    // añadir huecos hasta primer día de semana
+    for(let i=0;i<firstDay.getDay();i++){
+      const empty = document.createElement('div'); empty.className='day-box'; empty.textContent=''; miniCalendar.appendChild(empty);
+    }
+
+    for(let d=1; d<=lastDay.getDate(); d++){
+      const currentDay = new Date(date.getFullYear(), date.getMonth(), d);
+      const diffDays = Math.floor((currentDay - startDateValue)/(1000*60*60*24));
+      const week = Math.floor(diffDays/7)+1;
+      const dayBox = document.createElement('div');
+      dayBox.className='day-box '+getStageClass(getStage(week));
+      dayBox.textContent = d;
+      if(currentDay.toDateString() === new Date().toDateString()) dayBox.classList.add('current-day');
+      dayBox.title = `Semana ${week} - ${getStage(week)}\n${currentDay.toLocaleDateString()}`;
+      dayBox.onclick = () => { loadWeek(plantId, week); };
+      miniCalendar.appendChild(dayBox);
+    }
+
+    date.setMonth(date.getMonth()+1);
+  }
+}
+
+function loadWeek(plantId, week){
+  const data = plantsData[plantId];
+  data.week = week;
+  data.stage = getStage(week);
+  if(data.height===0){ data.height=randomRange(1,45); data.nutrients={n:randomRange(0,50),p:randomRange(0,30),k:randomRange(0,40)}; }
+  weekSelect.value = data.week;
+  stageSelect.value = data.stage;
+  heightInput.value = data.height;
+  nInput.value = data.nutrients.n;
+  pInput.value = data.nutrients.p;
+  kInput.value = data.nutrients.k;
+  plantImg.src = `week${String(data.week).padStart(2,'0')}.webp`;
+  generateMiniCalendar(plantId);
+}
+
+function loadPlant(plantId){
+  currentPlant = plantId;
+  const data = plantsData[plantId];
+  loadWeek(plantId, data.week);
+}
+
+// Actualizar datos
+document.getElementById('updateBtn').addEventListener('click',()=>{
+  const data = plantsData[currentPlant];
+  data.week = parseInt(weekSelect.value);
+  data.stage = stageSelect.value;
+  data.height = parseFloat(heightInput.value);
+  data.nutrients={n:parseFloat(nInput.value),p:parseFloat(pInput.value),k:parseFloat(kInput.value)};
+  generateMiniCalendar(currentPlant);
+});
+
+// Guardar historial
+document.getElementById('saveBtn').addEventListener('click',()=>{
+  const data = plantsData[currentPlant];
+  data.history.push({date:new Date().toISOString(), week:data.week, stage:data.stage, height:data.height, nutrients:{...data.nutrients}});
+  localStorage.setItem(currentPlant, JSON.stringify(data));
+  alert(`Historial guardado para ${currentPlant}`);
+});
+
+// Cambiar planta
+plantSelect.addEventListener('change', e=>loadPlant(e.target.value));
+
+// Aplicar fecha inicio
+document.getElementById('applyStart').addEventListener('click',()=>{
+  startDateValue = new Date(startDateInput.value);
+  generateMiniCalendar(currentPlant);
+});
+
+// Ver dashboard
+document.getElementById('showDashboard').addEventListener('click', ()=>{
+  dashboard.style.display = 'block';
+  dashboardGrid.innerHTML = '';
+  for(let i=1;i<=NUM_PLANTS;i++){
+    const id = 'Planta'+String(i).padStart(2,'0');
+    const data = plantsData[id];
+    const card = document.createElement('div');
+    card.className='plant-card';
+    card.innerHTML=`<b>${id}</b><br>Semana: ${data.week}<br>Etapa: ${data.stage}`;
+    dashboardGrid.appendChild(card);
+  }
+});
+
+// Init
+loadPlant(currentPlant);
+</script>
+</body>
+</html>
