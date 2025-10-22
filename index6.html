@@ -105,7 +105,7 @@ for(let i=1;i<=NUM_PLANTS;i++){
   const id='Planta'+String(i).padStart(2,'0');
   plantsData[id]=JSON.parse(localStorage.getItem(id))||{
     startDate:(new Date()).toISOString().split('T')[0],
-    week:1, height:0, nutrients:{n:0,p:0,k:0}
+    week:1, stage:'Germinación', height:0, nutrients:{n:0,p:0,k:0}, history:[]
   };
   const option=document.createElement('option'); option.value=id; option.textContent=id;
   plantSelect.appendChild(option);
@@ -137,28 +137,32 @@ function calculateWeek(start){
   return Math.min(Math.max(Math.floor(diff/7)+1,1),12);
 }
 
-// Generar calendario diario (30 días)
+// Generar calendario diario (30 días) desde inicio
 function generateCalendar(plantId){
   calendarContainer.innerHTML='';
   const data=plantsData[plantId];
-  const start=new Date(data.startDate);
   for(let i=0;i<30;i++){
-    const dayDate=new Date(start);
-    dayDate.setDate(dayDate.getDate()+i);
-    const weekNum=Math.min(Math.floor(i/7)+1,12);
     const dayBox=document.createElement('div');
+    const weekNum=Math.min(Math.floor(i/7)+1,12);
     dayBox.className='day-box '+getStageClass(weekNum);
-    dayBox.textContent=dayDate.getDate()+'/'+(dayDate.getMonth()+1);
-    if(dayDate.toDateString()===new Date().toDateString()) dayBox.classList.add('current-day');
+    dayBox.textContent='D'+(i+1);
+    if(weekNum===data.week) dayBox.classList.add('current-day');
     dayBox.onclick=()=>{
-      plantsData[plantId].week=weekNum;
+      data.week=weekNum;
+      data.stage=getStageName(weekNum);
       weekInput.value=weekNum;
-      stageSelect.value=getStageName(weekNum);
+      stageSelect.value=data.stage;
       plantImg.src=`week${String(weekNum).padStart(2,'0')}.webp`;
-      localStorage.setItem(plantId,JSON.stringify(plantsData[plantId]));
+      savePlantData(currentPlant);
+      generateCalendar(currentPlant);
     };
     calendarContainer.appendChild(dayBox);
   }
+}
+
+// Guardar en JSON localStorage
+function savePlantData(id){
+  localStorage.setItem(id, JSON.stringify(plantsData[id]));
 }
 
 // Cargar planta
@@ -166,18 +170,16 @@ function loadPlant(id){
   currentPlant=id;
   const data=plantsData[id];
   startDateInput.value=data.startDate;
-  let week=calculateWeek(data.startDate);
-  data.week=week;
-  weekInput.value=week;
-  stageSelect.value=getStageName(week);
-  plantImg.src=`week${String(week).padStart(2,'0')}.webp`;
+  weekInput.value=data.week;
+  stageSelect.value=data.stage;
+  plantImg.src=`week${String(data.week).padStart(2,'0')}.webp`;
   heightInput.value=data.height;
   nInput.value=data.nutrients.n;
   pInput.value=data.nutrients.p;
   kInput.value=data.nutrients.k;
-  remainingDaysDiv.textContent=`Semanas restantes hasta cosecha: ${Math.max(12-week,0)}`;
-  localStorage.setItem(id,JSON.stringify(data));
+  remainingDaysDiv.textContent=`Semanas restantes hasta cosecha: ${Math.max(12-data.week,0)}`;
   generateCalendar(id);
+  savePlantData(id);
 }
 
 // Actualizar datos
@@ -185,7 +187,7 @@ document.getElementById('updateBtn').addEventListener('click',()=>{
   const data=plantsData[currentPlant];
   data.height=parseFloat(heightInput.value);
   data.nutrients={n:parseFloat(nInput.value),p:parseFloat(pInput.value),k:parseFloat(kInput.value)};
-  localStorage.setItem(currentPlant,JSON.stringify(data));
+  savePlantData(currentPlant);
   loadPlant(currentPlant);
 });
 
@@ -193,36 +195,43 @@ document.getElementById('updateBtn').addEventListener('click',()=>{
 weekInput.addEventListener('input',()=>{
   let w=parseInt(weekInput.value);
   if(w<1) w=1; if(w>12) w=12;
-  plantsData[currentPlant].week=w;
-  stageSelect.value=getStageName(w);
+  const data=plantsData[currentPlant];
+  data.week=w;
+  data.stage=getStageName(w);
+  stageSelect.value=data.stage;
   plantImg.src=`week${String(w).padStart(2,'0')}.webp`;
-  localStorage.setItem(currentPlant,JSON.stringify(plantsData[currentPlant]));
   generateCalendar(currentPlant);
+  savePlantData(currentPlant);
 });
 
-// Cambiar etapa manualmente
+// Cambiar etapa manual
 stageSelect.addEventListener('change',()=>{
+  const data=plantsData[currentPlant];
   const stage=stageSelect.value;
-  let week=1;
+  data.stage=stage;
+  // Ajustar semana según etapa
   switch(stage){
-    case 'Germinación': week=1; break;
-    case 'Plántula': week=2; break;
-    case 'Vegetativo': week=4; break;
-    case 'Floración media': week=8; break;
-    case 'Floración final / Maduración': week=10; break;
-    case 'Cosecha': week=12; break;
+    case 'Germinación': data.week=1; break;
+    case 'Plántula': data.week=2; break;
+    case 'Vegetativo': data.week=5; break;
+    case 'Floración media': data.week=8; break;
+    case 'Floración final / Maduración': data.week=10; break;
+    case 'Cosecha': data.week=12; break;
   }
-  plantsData[currentPlant].week=week;
-  weekInput.value=week;
-  plantImg.src=`week${String(week).padStart(2,'0')}.webp`;
-  localStorage.setItem(currentPlant,JSON.stringify(plantsData[currentPlant]));
+  weekInput.value=data.week;
+  plantImg.src=`week${String(data.week).padStart(2,'0')}.webp`;
   generateCalendar(currentPlant);
+  savePlantData(currentPlant);
 });
 
 // Aplicar fecha de inicio
 document.getElementById('applyStart').addEventListener('click',()=>{
   const val=startDateInput.value;
-  if(val){ plantsData[currentPlant].startDate=val; localStorage.setItem(currentPlant,JSON.stringify(plantsData[currentPlant])); loadPlant(currentPlant);}
+  if(val){
+    plantsData[currentPlant].startDate=val;
+    savePlantData(currentPlant);
+    loadPlant(currentPlant);
+  }
 });
 
 // Selección de planta
@@ -235,8 +244,10 @@ document.getElementById('showDashboard').addEventListener('click',()=>{
   for(let i=1;i<=NUM_PLANTS;i++){
     const id='Planta'+String(i).padStart(2,'0');
     const card=document.createElement('div'); card.className='plant-card';
-    const img=document.createElement('img'); img.src=`week${String(plantsData[id].week).padStart(2,'0')}.webp`; card.appendChild(img);
-    const label=document.createElement('div'); label.textContent=id; card.appendChild(label);
+    const img=document.createElement('img'); img.src=`week${String(plantsData[id].week).padStart(2,'0')}.webp`;
+    card.appendChild(img);
+    const label=document.createElement('div'); label.textContent=id;
+    card.appendChild(label);
     card.onclick=()=>{ loadPlant(id); dashboard.style.display='none'; };
     dashboardGrid.appendChild(card);
   }
