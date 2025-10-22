@@ -6,13 +6,33 @@
 <style>
 body { font-family: Arial; display:flex; flex-direction:column; align-items:center; padding:20px; background:#f0fff0;}
 h2 { margin-bottom:20px; }
-.calendar-container { display:flex; gap:20px; width:1000px; }
-.mini-calendar { width:250px; background:#fff; border-radius:12px; padding:10px; box-shadow:0 4px 12px rgba(0,0,0,0.1);}
-.mini-calendar table { width:100%; border-collapse:collapse; font-size:12px;}
-.mini-calendar th, .mini-calendar td { border:1px solid #ddd; padding:4px; text-align:center; }
-.mini-calendar .past { background:#a5d6a7; }
-.mini-calendar .current { background:#2e7d32; color:white; font-weight:bold; }
-.mini-calendar .future { background:#e0e0e0; color:#666; }
+
+.main-container { display:flex; gap:20px; width:1000px; }
+
+.mini-calendar {
+  width:220px; 
+  background:#fff; 
+  border-radius:12px; 
+  padding:10px; 
+  box-shadow:0 4px 12px rgba(0,0,0,0.1);
+  display:grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap:3px;
+  font-size:10px;
+}
+.day-box {
+  width:28px; height:28px; 
+  display:flex; align-items:center; justify-content:center; 
+  border-radius:4px; font-weight:bold; color:#fff; cursor:pointer;
+}
+.germinacion { background:#a5d6a7; }
+.plantula { background:#66bb6a; }
+.vegetativo { background:#2e7d32; }
+.floracion_media { background:#ffb74d; color:#000; }
+.floracion_final { background:#f57c00; }
+.cosecha { background:#8d6e63; }
+
+.current-day { border:2px solid #000; }
 
 .container { display:flex; gap:20px; flex:1; }
 .viewer { flex:1; height:500px; display:flex; align-items:center; justify-content:center; background:#f7fff7; border-radius:12px; box-shadow:0 6px 20px rgba(0,0,0,0.12); overflow:hidden; }
@@ -20,7 +40,7 @@ h2 { margin-bottom:20px; }
 
 .info-panel { width:250px; background:#fff; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1); padding:15px; display:flex; flex-direction:column; gap:8px; }
 .info-item { display:flex; justify-content:space-between; align-items:center; }
-input, select { width:80px; text-align:right; border-radius:4px; border:1px solid #ccc; padding:2px 4px;}
+input { width:80px; text-align:right; border-radius:4px; border:1px solid #ccc; padding:2px 4px; }
 
 .controls { margin-top:12px; display:flex; gap:10px; align-items:center; }
 button { padding:10px 14px; border-radius:8px; border:none; background:#2e7d32; color:white; cursor:pointer; }
@@ -29,7 +49,7 @@ button { padding:10px 14px; border-radius:8px; border:none; background:#2e7d32; 
 </head>
 <body>
 
-<h2>Animación Ciclo 12 Semanas - Calendario por Fecha</h2>
+<h2>Animación Ciclo 12 Semanas - Mini Calendario</h2>
 
 <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
   <label>Fecha inicio:</label>
@@ -37,9 +57,9 @@ button { padding:10px 14px; border-radius:8px; border:none; background:#2e7d32; 
   <button id="applyStart">Aplicar</button>
 </div>
 
-<div class="calendar-container">
+<div class="main-container">
   <div class="mini-calendar" id="miniCalendar">
-    <!-- Calendario mensual generado aquí -->
+    <!-- Mini calendario generado aquí -->
   </div>
 
   <div class="container">
@@ -124,44 +144,39 @@ function loadWeek(n){
     history.push(data);
     localStorage.setItem('growthHistory',JSON.stringify(history));
     range.value=n;
-    generateCalendar();
+    generateMiniCalendar();
   },250);
 }
 
-// Generar calendario por mes
-function generateCalendar(){
+// Generar mini calendario tipo cuadricula
+function generateMiniCalendar(){
   const start = new Date(startDateValue);
   const today = new Date();
-  let html = "";
-  const weeks = [];
-  for(let i=0;i<12;i++){
-    const weekStart = new Date(start);
-    weekStart.setDate(start.getDate() + i*7);
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekStart.getDate() + 6);
-    weeks.push({start:weekStart,end:weekEnd,week:i+1,stage:getStage(i+1)});
+  miniCalendar.innerHTML="";
+  for(let week=1; week<=12; week++){
+    for(let day=0; day<7; day++){
+      const d = new Date(start);
+      d.setDate(start.getDate() + (week-1)*7 + day);
+      const box = document.createElement('div');
+      box.className='day-box '+getStageClass(week);
+      if(today.toDateString() === d.toDateString()) box.classList.add('current-day');
+      box.title = `Semana ${week} - ${getStage(week)}\n${d.toLocaleDateString()}`;
+      box.textContent = d.getDate();
+      miniCalendar.appendChild(box);
+    }
   }
-  // Dividir por meses
-  const months = {};
-  weeks.forEach(w=>{
-    const m = w.start.getMonth();
-    if(!months[m]) months[m] = [];
-    months[m].push(w);
-  });
-  // Renderizar tabla por mes
-  for(const m in months){
-    const monthName = new Date(2025, m).toLocaleString('es-ES',{month:'long'});
-    html += `<table><tr><th colspan="3">${monthName}</th></tr>`;
-    html += `<tr><th>Semana</th><th>Fecha Inicio</th><th>Etapa</th></tr>`;
-    months[m].forEach(w=>{
-      let cls='future';
-      if(today >= w.start && today <= w.end) cls='current';
-      else if(today > w.end) cls='past';
-      html += `<tr class="${cls}"><td>${w.week}</td><td>${w.start.toLocaleDateString()}</td><td>${w.stage}</td></tr>`;
-    });
-    html += `</table><br>`;
+}
+
+function getStageClass(week){
+  const s = getStage(week);
+  switch(s){
+    case 'Germinación': return 'germinacion';
+    case 'Plántula': return 'plantula';
+    case 'Vegetativo': return 'vegetativo';
+    case 'Floración media': return 'floracion_media';
+    case 'Floración final / Maduración': return 'floracion_final';
+    case 'Cosecha': return 'cosecha';
   }
-  miniCalendar.innerHTML = html;
 }
 
 // Aplicar fecha de inicio
@@ -192,9 +207,10 @@ document.getElementById('save').addEventListener('click',()=>{
 range.addEventListener('input',e=>loadWeek(parseInt(e.target.value)));
 
 // Init
-generateCalendar();
+generateMiniCalendar();
 loadWeek(1);
 
 </script>
+
 </body>
 </html>
