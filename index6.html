@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>25 Plantas - Calendario Diario</title>
+<title>25 Plantas - Calendario 30 Días</title>
 <style>
 body { font-family: Arial; background:#f0fff0; padding:20px; }
 h2 { text-align:center; margin-bottom:20px; }
@@ -16,10 +16,8 @@ h2 { text-align:center; margin-bottom:20px; }
 select, input { width:100px; text-align:right; border-radius:4px; border:1px solid #ccc; padding:2px 4px; }
 button { margin-top:5px; padding:5px; border-radius:4px; border:none; background:#2e7d32; color:white; cursor:pointer; font-size:12px; }
 
-#calendarContainer { display:flex; flex-direction:column; gap:10px; max-height:400px; overflow-x:auto; padding-top:10px;}
-.month-row { display:flex; gap:2px; align-items:center; flex-wrap:nowrap; }
-.month-label { width:50px; font-weight:bold; display:flex; align-items:center; justify-content:center; }
-.day-box { width:30px; height:30px; display:flex; justify-content:center; align-items:center; border-radius:4px; font-size:10px; cursor:pointer; background:red; color:black; border:1px solid black; }
+#calendarContainer { display:flex; gap:3px; overflow-x:auto; padding-top:10px; flex-wrap: nowrap;}
+.day-box { width:40px; height:40px; display:flex; flex-direction:column; justify-content:center; align-items:center; border-radius:4px; font-size:10px; cursor:pointer; background:red; color:black; border:1px solid black; }
 .current-day { border:2px solid black; }
 
 #dashboard { display:none; margin-top:20px; }
@@ -30,7 +28,7 @@ button { margin-top:5px; padding:5px; border-radius:4px; border:none; background
 </head>
 <body>
 
-<h2>25 Plantas - Calendario Diario</h2>
+<h2>25 Plantas - Calendario 30 Días</h2>
 
 <div class="selection-panel">
   <label>Planta:</label>
@@ -91,7 +89,7 @@ let plantsData={}, currentPlant='Planta01', startDateValue=new Date();
 
 for(let i=1;i<=NUM_PLANTS;i++){
   const id='Planta'+String(i).padStart(2,'0');
-  plantsData[id]=JSON.parse(localStorage.getItem(id))||{week:1,stage:'Germinación',height:0,nutrients:{n:0,p:0,k:0},history:[]};
+  plantsData[id]=JSON.parse(localStorage.getItem(id))||{week:1,stage:'Germinación',height:0,nutrients:{n:0,p:0,k:0},startDate:(new Date()).toISOString().split('T')[0],history:[]};
   const option=document.createElement('option'); option.value=id; option.textContent=id; plantSelect.appendChild(option);
 }
 for(let i=1;i<=12;i++){ const option=document.createElement('option'); option.value=i; option.textContent=i; weekSelect.appendChild(option); }
@@ -122,38 +120,25 @@ function loadWeek(plantId, week){
   localStorage.setItem(plantId,JSON.stringify(data));
 }
 
-function loadPlant(plantId){ currentPlant=plantId; loadWeek(plantId,plantsData[plantId].week); }
+function loadPlant(plantId){
+  currentPlant=plantId;
+  startDateValue=new Date(plantsData[plantId].startDate);
+  startDateInput.value=plantsData[plantId].startDate;
+  loadWeek(plantId,plantsData[plantId].week);
+}
 
 function generateDailyCalendar(plantId){
   calendarContainer.innerHTML='';
   const data=plantsData[plantId];
-  let date = new Date(startDateValue);
-  let endDate = new Date(date); endDate.setDate(endDate.getDate()+90); // 3 meses aprox.
-
-  const months = {};
-  while(date <= endDate){
-    const monthKey = date.getFullYear()+'-'+(date.getMonth()+1);
-    if(!months[monthKey]) months[monthKey]=[];
-    months[monthKey].push(new Date(date));
-    date.setDate(date.getDate()+1);
-  }
-
-  for(const key in months){
-    const monthRow=document.createElement('div'); monthRow.className='month-row';
-    const monthLabel=document.createElement('div'); monthLabel.className='month-label';
-    monthLabel.textContent = months[key][0].toLocaleString('es-ES',{month:'short'});
-    monthRow.appendChild(monthLabel);
-
-    months[key].forEach(day=>{
-      const dayBox=document.createElement('div'); dayBox.className='day-box';
-      const weekNum=Math.ceil((day-startDateValue)/(7*24*60*60*1000))+1;
-      if(weekNum===data.week) dayBox.classList.add('current-day');
-      dayBox.textContent=day.getDate();
-      dayBox.onclick=()=>loadWeek(plantId,weekNum);
-      monthRow.appendChild(dayBox);
-    });
-
-    calendarContainer.appendChild(monthRow);
+  const start=new Date(data.startDate);
+  for(let i=0;i<30;i++){
+    const dayDate=new Date(start); dayDate.setDate(dayDate.getDate()+i);
+    const dayBox=document.createElement('div'); dayBox.className='day-box';
+    const weekNum=Math.ceil((i+1)/7);
+    dayBox.textContent=`${dayDate.getDate()}/${dayDate.getMonth()+1}`;
+    if(weekNum===data.week) dayBox.classList.add('current-day');
+    dayBox.onclick=()=>loadWeek(plantId,weekNum);
+    calendarContainer.appendChild(dayBox);
   }
 }
 
@@ -172,7 +157,10 @@ document.getElementById('saveBtn').addEventListener('click',()=>{
   localStorage.setItem(currentPlant,JSON.stringify(data));
   alert(`Historial guardado para ${currentPlant}`);
 });
-document.getElementById('applyStart').addEventListener('click',()=>{ startDateValue=new Date(startDateInput.value); generateDailyCalendar(currentPlant); });
+document.getElementById('applyStart').addEventListener('click',()=>{
+  const val=startDateInput.value;
+  if(val){ startDateValue=new Date(val); plantsData[currentPlant].startDate=val; generateDailyCalendar(currentPlant); localStorage.setItem(currentPlant,JSON.stringify(plantsData[currentPlant])); }
+});
 document.getElementById('showDashboard').addEventListener('click',()=>{
   dashboard.style.display='block'; dashboardGrid.innerHTML='';
   for(let i=1;i<=NUM_PLANTS;i++){
@@ -186,9 +174,8 @@ document.getElementById('showDashboard').addEventListener('click',()=>{
 });
 
 // Init
-startDateValue=new Date();
 loadPlant('Planta01');
-startDateInput.value=startDateValue.toISOString().split('T')[0];
 </script>
+
 </body>
 </html>
