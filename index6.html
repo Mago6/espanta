@@ -127,7 +127,7 @@ for(let i=1;i<=NUM_PLANTS;i++){
   plantSelect.appendChild(option);
 }
 
-// Funciones de etapas
+// Funciones de etapas 52 semanas
 function getStageName(week){
   if(week<=2) return 'Germinación';
   if(week<=6) return 'Plántula';
@@ -155,7 +155,7 @@ function calculateWeekAnnual(start){
     return Math.min(Math.floor(diffDays / 7)+1, 52);
 }
 
-// Generar calendario diario completo 52 semanas
+// Generar calendario diario completo
 function generateDailyCalendar(plantId){
     calendarContainer.innerHTML='';
     const data = plantsData[plantId];
@@ -170,7 +170,7 @@ function generateDailyCalendar(plantId){
         dayBox.className='day-box '+getStageClass(weekNum);
         dayBox.textContent = `${dayDate.getDate()}/${dayDate.getMonth()+1}`;
         if(dayDate.toDateString()===today.toDateString()) dayBox.classList.add('current-day');
-        if(dayDate>today) dayBox.style.opacity='0.3'; // días futuros
+        if(dayDate>today) dayBox.style.opacity='0.3';
         calendarContainer.appendChild(dayBox);
     }
 }
@@ -188,7 +188,7 @@ function loadPlant(id){
 
     weekInput.value=week;
     stageInput.value=data.stage;
-    plantImg.src=`week${String(Math.min(week,12)).padStart(2,'0')}.webp`;
+    plantImg.src=`week${String(Math.min(week,12)).padStart(2,'0')}.webp`; // imagen ajustada a semana
     heightInput.value=data.height;
     nInput.value=data.nutrients.n;
     pInput.value=data.nutrients.p;
@@ -205,7 +205,7 @@ document.getElementById('updateBtn').addEventListener('click',()=>{
     const data = plantsData[currentPlant];
     data.height = parseFloat(heightInput.value);
     data.nutrients = {n:parseFloat(nInput.value),p:parseFloat(pInput.value),k:parseFloat(kInput.value)};
-    plantsData[currentPlant] = data;
+    plantsData[currentPlant]=data;
     localStorage.setItem(currentPlant,JSON.stringify(data));
     loadPlant(currentPlant);
 });
