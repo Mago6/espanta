@@ -51,7 +51,7 @@ h2 { text-align:center; margin-bottom:20px; color:#f00; }
   <label>Fecha inicio:</label>
   <input type="date" id="startDate" min="2024-01-01">
   <label>Semana:</label>
-  <input type="number" id="weekInput" min="1" max="32">
+  <input type="number" id="weekInput" min="1" max="52">
   <label>Etapa:</label>
   <select id="stageSelect">
     <option>Germinación</option>
@@ -114,13 +114,13 @@ for (let i = 1; i <= NUM_PLANTS; i++) {
   plantSelect.appendChild(option);
 }
 
-// --- Función para asignar etapa según semana (ciclo exterior Toluca) ---
+// --- Función para asignar etapa según semana (12 meses, 52 semanas) ---
 function getStageNameExterior(week) {
   if (week <= 2) return 'Germinación';          // 0-0.5 meses
   if (week <= 6) return 'Plántula';             // 0.5-1.5 meses
   if (week <= 14) return 'Vegetativo';          // 1.5-3.5 meses
-  if (week <= 24) return 'Floración';           // 3.5-6 meses
-  return 'Cosecha';                              // después de 6 meses
+  if (week <= 28) return 'Floración';           // 3.5-6.5 meses
+  return 'Cosecha';                              // después de 28 semanas
 }
 
 // --- Calcular semana según fecha de inicio ---
@@ -128,8 +128,8 @@ function calculateWeekExterior(start) {
   const today = new Date();
   const startDate = new Date(start);
   if (today < startDate) return 0;
-  const diffDays = Math.floor((today - startDate)/(1000*60*60*24)) + 1;
-  return Math.min(Math.floor(diffDays/7)+1, 32);  // máximo 32 semanas para cubrir todo el ciclo
+  const diffDays = Math.floor((today - startDate)/(1000*60*60*24));
+  return Math.min(Math.floor(diffDays/7)+1, 52);
 }
 
 // Generar calendario completo por meses
@@ -190,8 +190,8 @@ function loadPlant(id) {
   pInput.value = data.nutrients.p;
   kInput.value = data.nutrients.k;
 
-  const remainingWeeks = Math.max(24 - data.week, 0);
-  remainingDaysDiv.innerHTML = `<span>Semanas restantes hasta cosecha: ${remainingWeeks}</span><span>Fecha inicio: ${data.startDate}</span><span>Etapa actual: ${data.stage}</span>`;
+  const weeksPassed = data.week;
+  remainingDaysDiv.innerHTML = `<span>Semanas que han pasado: ${weeksPassed}</span><span>Fecha inicio: ${data.startDate}</span><span>Etapa actual: ${data.stage}</span>`;
 
   generateCalendar(id);
 }
@@ -223,7 +223,7 @@ stageSelect.addEventListener('change', () => {
     case 'Plántula': data.week = 3; break;
     case 'Vegetativo': data.week = 8; break;
     case 'Floración': data.week = 18; break;
-    case 'Cosecha': data.week = 25; break;
+    case 'Cosecha': data.week = 40; break;
   }
   data.stage = stageSelect.value;
   weekInput.value = data.week;
@@ -251,7 +251,7 @@ document.getElementById('showDashboard').addEventListener('click', () => {
   dashboard.style.display = 'block';
   dashboardGrid.innerHTML = '';
   for (let i = 1; i <= NUM_PLANTS; i++) {
-    const id = 'Planta' + String(i).padStart(2, '0');
+    const id = 'Planta' + String(i).padStart(2,'0');
     const card = document.createElement('div'); card.className = 'plant-card';
     const img = document.createElement('img'); img.src = `week${String(plantsData[id].week).padStart(2,'0')}.webp`; card.appendChild(img);
     const label = document.createElement('div'); label.textContent = id; card.appendChild(label);
