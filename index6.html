@@ -41,7 +41,7 @@ button { margin-top:5px; padding:5px; border-radius:4px; border:none; background
   <label>Semana:</label>
   <select id="weekSelect"></select>
   <label>Etapa:</label>
-  <select id="stageSelect">
+  <select id="stageSelect" disabled>
     <option>Germinación</option>
     <option>Plántula</option>
     <option>Vegetativo</option>
@@ -150,12 +150,14 @@ function loadWeek(plantId,week){
 
 function loadPlant(plantId){ currentPlant=plantId; const data=plantsData[plantId]; loadWeek(plantId,data.week); }
 
+weekSelect.addEventListener('change',()=>{ loadWeek(currentPlant,parseInt(weekSelect.value)); });
+plantSelect.addEventListener('change',()=>loadPlant(plantSelect.value));
+
 document.getElementById('updateBtn').addEventListener('click',()=>{
   const data=plantsData[currentPlant];
-  data.week=parseInt(weekSelect.value); data.stage=stageSelect.value;
   data.height=parseFloat(heightInput.value);
   data.nutrients={n:parseFloat(nInput.value),p:parseFloat(pInput.value),k:parseFloat(kInput.value)};
-  loadWeek(currentPlant,data.week);
+  loadWeek(currentPlant,data.week); // actualiza combobox de etapa y mini calendario
 });
 
 document.getElementById('saveBtn').addEventListener('click',()=>{
@@ -164,8 +166,6 @@ document.getElementById('saveBtn').addEventListener('click',()=>{
   localStorage.setItem(currentPlant,JSON.stringify(data));
   alert(`Historial guardado para ${currentPlant}`);
 });
-
-plantSelect.addEventListener('change',e=>loadPlant(e.target.value));
 
 document.getElementById('applyStart').addEventListener('click',()=>{
   startDateValue=new Date(startDateInput.value);
@@ -180,6 +180,7 @@ document.getElementById('showDashboard').addEventListener('click',()=>{
     const data=plantsData[id];
     const card=document.createElement('div'); card.className='plant-card';
     card.innerHTML=`<img src="week${String(data.week).padStart(2,'0')}.webp"><b>${id}</b><br>Semana: ${data.week}<br>Etapa: ${data.stage}`;
+    card.onclick=()=>{ loadPlant(id); dashboard.style.display='none'; };
     dashboardGrid.appendChild(card);
   }
 });
