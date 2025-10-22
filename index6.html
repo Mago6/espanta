@@ -27,6 +27,8 @@ h2 { text-align:center; margin-bottom:20px; color:#f00; }
 
 #remainingDays { margin-top:10px; font-weight:bold; color:#0f0; display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
 
+#finalStats { margin-top:5px; font-weight:bold; color:#0f0; display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+
 #dashboard { display:none; margin-top:20px; }
 .dashboard-grid { display:grid; grid-template-columns: repeat(auto-fill,minmax(120px,1fr)); gap:10px; }
 .plant-card { padding:5px; border-radius:6px; background:#111; text-align:center; font-size:12px; display:flex; flex-direction:column; align-items:center; color:#f00; }
@@ -76,6 +78,7 @@ h2 { text-align:center; margin-bottom:20px; color:#f00; }
       <div><label>K:</label><input type="number" id="kInput"></div>
     </div>
     <div id="remainingDays"></div>
+    <div id="finalStats"></div>
   </div>
   <div id="calendarContainer"></div>
 </div>
@@ -100,6 +103,7 @@ const calendarContainer = document.getElementById('calendarContainer');
 const dashboard = document.getElementById('dashboard');
 const dashboardGrid = document.getElementById('dashboardGrid');
 const remainingDaysDiv = document.getElementById('remainingDays');
+const finalStatsDiv = document.getElementById('finalStats');
 
 let plantsData = {}, currentPlant = 'Planta01';
 
@@ -116,11 +120,11 @@ for (let i = 1; i <= NUM_PLANTS; i++) {
 
 // --- Función para asignar etapa según semana (12 meses, 52 semanas) ---
 function getStageNameExterior(week) {
-  if (week <= 2) return 'Germinación';          // 0-0.5 meses
-  if (week <= 6) return 'Plántula';             // 0.5-1.5 meses
-  if (week <= 14) return 'Vegetativo';          // 1.5-3.5 meses
-  if (week <= 28) return 'Floración';           // 3.5-6.5 meses
-  return 'Cosecha';                              // después de 28 semanas
+  if (week <= 2) return 'Germinación';
+  if (week <= 6) return 'Plántula';
+  if (week <= 14) return 'Vegetativo';
+  if (week <= 28) return 'Floración';
+  return 'Cosecha';
 }
 
 // --- Calcular semana según fecha de inicio ---
@@ -130,6 +134,13 @@ function calculateWeekExterior(start) {
   if (today < startDate) return 0;
   const diffDays = Math.floor((today - startDate)/(1000*60*60*24));
   return Math.min(Math.floor(diffDays/7)+1, 52);
+}
+
+// --- Calcular peso estimado al cosechar ---
+function calculateFinalStats(height, stage) {
+  let estimatedWeight = height * 1.5; // ejemplo: 1.5 gramos por cm de altura
+  if(stage === 'Cosecha') estimatedWeight = estimatedWeight * 0.3; // reducción del 70%
+  return {weight: estimatedWeight.toFixed(1), height: height};
 }
 
 // Generar calendario completo por meses
@@ -190,8 +201,13 @@ function loadPlant(id) {
   pInput.value = data.nutrients.p;
   kInput.value = data.nutrients.k;
 
+  // Semanas que han pasado + fecha + etapa
   const weeksPassed = data.week;
   remainingDaysDiv.innerHTML = `<span>Semanas que han pasado: ${weeksPassed}</span><span>Fecha inicio: ${data.startDate}</span><span>Etapa actual: ${data.stage}</span>`;
+
+  // Calcular peso estimado al cosechar
+  const finalStats = calculateFinalStats(data.height, data.stage);
+  finalStatsDiv.innerHTML = `<span>Altura actual: ${finalStats.height} cm</span><span>Peso estimado al cosechar: ${finalStats.weight} g</span>`;
 
   generateCalendar(id);
 }
