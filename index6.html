@@ -17,15 +17,10 @@ select, input { width:100px; text-align:right; border-radius:4px; border:1px sol
 button { margin-top:5px; padding:5px; border-radius:4px; border:none; background:#2e7d32; color:white; cursor:pointer; font-size:12px; }
 
 #calendarContainer { display:flex; flex-direction:column; gap:10px; max-height:400px; overflow-x:auto; padding-top:10px;}
-.month-row { display:grid; grid-template-columns: repeat(31, 30px); gap:2px; align-items:center; }
-.day-box { width:30px; height:30px; display:flex; justify-content:center; align-items:center; border-radius:4px; font-size:10px; cursor:pointer; }
-.germinacion { background:#a5d6a7; }
-.plantula { background:#66bb6a; }
-.vegetativo { background:#2e7d32; }
-.floracion_media { background:#ffb74d; color:#000; }
-.floracion_final { background:#f57c00; }
-.cosecha { background:#8d6e63; }
-.current-day { border:2px solid #000; }
+.month-row { display:flex; gap:2px; align-items:center; flex-wrap:nowrap; }
+.month-label { width:50px; font-weight:bold; display:flex; align-items:center; justify-content:center; }
+.day-box { width:30px; height:30px; display:flex; justify-content:center; align-items:center; border-radius:4px; font-size:10px; cursor:pointer; background:red; color:black; border:1px solid black; }
+.current-day { border:2px solid black; }
 
 #dashboard { display:none; margin-top:20px; }
 .dashboard-grid { display:grid; grid-template-columns: repeat(5, 1fr); gap:10px; }
@@ -109,16 +104,6 @@ function getStage(week){
   if(week<=11) return 'Floración final / Maduración';
   return 'Cosecha';
 }
-function getStageClass(stage){
-  switch(stage){
-    case'Germinación':return'germinacion';
-    case'Plántula':return'plantula';
-    case'Vegetativo':return'vegetativo';
-    case'Floración media':return'floracion_media';
-    case'Floración final / Maduración':return'floracion_final';
-    case'Cosecha':return'cosecha';
-  }
-}
 
 function loadWeek(plantId, week){
   const data=plantsData[plantId];
@@ -133,34 +118,41 @@ function loadWeek(plantId, week){
   pInput.value=data.nutrients.p;
   kInput.value=data.nutrients.k;
   plantImg.src=`week${String(data.week).padStart(2,'0')}.webp`;
-  generateCalendar(plantId);
+  generateDailyCalendar(plantId);
   localStorage.setItem(plantId,JSON.stringify(data));
 }
 
 function loadPlant(plantId){ currentPlant=plantId; loadWeek(plantId,plantsData[plantId].week); }
 
-function generateCalendar(plantId){
+function generateDailyCalendar(plantId){
   calendarContainer.innerHTML='';
   const data=plantsData[plantId];
-  let weekStart=new Date(startDateValue);
-  for(let monthOffset=0; monthOffset<4; monthOffset++){
+  let date = new Date(startDateValue);
+  let endDate = new Date(date); endDate.setDate(endDate.getDate()+90); // 3 meses aprox.
+
+  const months = {};
+  while(date <= endDate){
+    const monthKey = date.getFullYear()+'-'+(date.getMonth()+1);
+    if(!months[monthKey]) months[monthKey]=[];
+    months[monthKey].push(new Date(date));
+    date.setDate(date.getDate()+1);
+  }
+
+  for(const key in months){
     const monthRow=document.createElement('div'); monthRow.className='month-row';
-    const monthDate=new Date(weekStart.getFullYear(),weekStart.getMonth()+monthOffset,1);
-    const monthLabel=document.createElement('div');
-    monthLabel.textContent=monthDate.toLocaleString('es-ES',{month:'short'});
-    monthLabel.style.gridColumn='span 31'; monthLabel.style.fontWeight='bold';
-    calendarContainer.appendChild(monthLabel);
-    for(let d=1;d<=31;d++){
-      const dayDate=new Date(weekStart.getFullYear(),weekStart.getMonth()+monthOffset,d);
-      if(dayDate.getMonth() !== (weekStart.getMonth()+monthOffset)%12) continue;
-      const dayBox=document.createElement('div');
-      const weekNum=Math.ceil((dayDate-startDateValue)/7)+1;
-      dayBox.className='day-box '+getStageClass(getStage(weekNum));
-      dayBox.textContent=d;
+    const monthLabel=document.createElement('div'); monthLabel.className='month-label';
+    monthLabel.textContent = months[key][0].toLocaleString('es-ES',{month:'short'});
+    monthRow.appendChild(monthLabel);
+
+    months[key].forEach(day=>{
+      const dayBox=document.createElement('div'); dayBox.className='day-box';
+      const weekNum=Math.ceil((day-startDateValue)/(7*24*60*60*1000))+1;
       if(weekNum===data.week) dayBox.classList.add('current-day');
+      dayBox.textContent=day.getDate();
       dayBox.onclick=()=>loadWeek(plantId,weekNum);
       monthRow.appendChild(dayBox);
-    }
+    });
+
     calendarContainer.appendChild(monthRow);
   }
 }
@@ -180,22 +172,23 @@ document.getElementById('saveBtn').addEventListener('click',()=>{
   localStorage.setItem(currentPlant,JSON.stringify(data));
   alert(`Historial guardado para ${currentPlant}`);
 });
-document.getElementById('applyStart').addEventListener('click',()=>{ startDateValue=new Date(startDateInput.value); generateCalendar(currentPlant); });
+document.getElementById('applyStart').addEventListener('click',()=>{ startDateValue=new Date(startDateInput.value); generateDailyCalendar(currentPlant); });
 document.getElementById('showDashboard').addEventListener('click',()=>{
-  dashboard.style.display='block';
-  dashboardGrid.innerHTML='';
+  dashboard.style.display='block'; dashboardGrid.innerHTML='';
   for(let i=1;i<=NUM_PLANTS;i++){
     const id='Planta'+String(i).padStart(2,'0');
-    const data=plantsData[id];
     const card=document.createElement('div'); card.className='plant-card';
-    card.innerHTML=`<img src="week${String(data.week).padStart(2,'0')}.webp"><b>${id}</b><br>Semana: ${data.week}<br>Etapa: ${data.stage}`;
+    const img=document.createElement('img'); img.src=`week${String(plantsData[id].week).padStart(2,'0')}.webp`; card.appendChild(img);
+    const label=document.createElement('div'); label.textContent=id; card.appendChild(label);
     card.onclick=()=>{ loadPlant(id); dashboard.style.display='none'; };
     dashboardGrid.appendChild(card);
   }
 });
 
 // Init
-loadPlant(currentPlant);
+startDateValue=new Date();
+loadPlant('Planta01');
+startDateInput.value=startDateValue.toISOString().split('T')[0];
 </script>
 </body>
 </html>
