@@ -2,104 +2,54 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Ciclo 12 semanas - Planta</title>
+<title>Ciclo 12 semanas - 25 Plantas</title>
 <style>
-body { font-family: Arial; display:flex; flex-direction:column; align-items:center; padding:20px; background:#f0fff0;}
-h2 { margin-bottom:20px; }
+body { font-family: Arial; background:#f0fff0; padding:20px; }
+h2 { margin-bottom:20px; text-align:center; }
+.plants-grid { display:grid; grid-template-columns: repeat(5, 1fr); gap:20px; }
 
-.main-container { display:flex; gap:20px; width:1000px; }
+.plant-card {
+  background:#fff; border-radius:12px; padding:10px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.1); display:flex; flex-direction:column; align-items:center;
+}
 
-.mini-calendar {
-  width:220px; 
-  background:#fff; 
-  border-radius:12px; 
-  padding:10px; 
-  box-shadow:0 4px 12px rgba(0,0,0,0.1);
-  display:grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap:3px;
-  font-size:10px;
-}
-.day-box {
-  width:28px; height:28px; 
-  display:flex; align-items:center; justify-content:center; 
-  border-radius:4px; font-weight:bold; color:#fff; cursor:pointer;
-}
+.plant-img { width:100%; height:150px; object-fit:contain; border-radius:8px; background:#f7fff7; }
+
+.info-panel { width:100%; margin-top:5px; display:flex; flex-direction:column; gap:4px; }
+.info-item { display:flex; justify-content:space-between; font-size:12px; }
+input { width:50px; text-align:right; border-radius:4px; border:1px solid #ccc; padding:2px 2px; font-size:12px; }
+
+.mini-calendar { width:100%; display:grid; grid-template-columns: repeat(7, 1fr); gap:2px; margin-top:5px; font-size:10px; }
+.day-box { width:20px; height:20px; display:flex; align-items:center; justify-content:center; border-radius:3px; color:#fff; font-weight:bold; cursor:pointer; }
 .germinacion { background:#a5d6a7; }
 .plantula { background:#66bb6a; }
 .vegetativo { background:#2e7d32; }
 .floracion_media { background:#ffb74d; color:#000; }
 .floracion_final { background:#f57c00; }
 .cosecha { background:#8d6e63; }
-
 .current-day { border:2px solid #000; }
-
-.container { display:flex; gap:20px; flex:1; }
-.viewer { flex:1; height:500px; display:flex; align-items:center; justify-content:center; background:#f7fff7; border-radius:12px; box-shadow:0 6px 20px rgba(0,0,0,0.12); overflow:hidden; }
-.plant-img { width:100%; height:100%; object-fit:contain; transition: opacity 0.8s ease; }
-
-.info-panel { width:250px; background:#fff; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.1); padding:15px; display:flex; flex-direction:column; gap:8px; }
-.info-item { display:flex; justify-content:space-between; align-items:center; }
-input { width:80px; text-align:right; border-radius:4px; border:1px solid #ccc; padding:2px 4px; }
-
-.controls { margin-top:12px; display:flex; gap:10px; align-items:center; }
-button { padding:10px 14px; border-radius:8px; border:none; background:#2e7d32; color:white; cursor:pointer; }
-.range { width:400px; }
+button { margin-top:5px; padding:4px 8px; border-radius:4px; border:none; background:#2e7d32; color:white; cursor:pointer; font-size:12px; }
 </style>
 </head>
 <body>
 
-<h2>Animación Ciclo 12 Semanas - Mini Calendario</h2>
+<h2>Gestión de 25 Plantas - Ciclo 12 Semanas</h2>
 
 <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
-  <label>Fecha inicio:</label>
+  <label>Fecha inicio cultivo:</label>
   <input type="date" id="startDate" value="">
   <button id="applyStart">Aplicar</button>
 </div>
 
-<div class="main-container">
-  <div class="mini-calendar" id="miniCalendar">
-    <!-- Mini calendario generado aquí -->
-  </div>
-
-  <div class="container">
-    <div class="viewer">
-      <img id="plantImg" class="plant-img" src="week01.webp" alt="planta semana">
-    </div>
-    <div class="info-panel">
-      <div class="info-item"><label>Semana:</label><input type="number" id="weekInput" min="1" max="12"></div>
-      <div class="info-item"><label>Etapa:</label><input type="text" id="stageInput"></div>
-      <div class="info-item"><label>Altura (cm):</label><input type="number" id="heightInput"></div>
-      <div class="info-item"><label>N:</label><input type="number" id="nInput"></div>
-      <div class="info-item"><label>P:</label><input type="number" id="pInput"></div>
-      <div class="info-item"><label>K:</label><input type="number" id="kInput"></div>
-      <button id="updateBtn">Actualizar Datos</button>
-    </div>
-  </div>
-</div>
-
-<div class="controls">
-  <button id="prev">◀</button>
-  <input id="weekRange" class="range" type="range" min="1" max="12" value="1">
-  <button id="next">▶</button>
-  <button id="auto">Auto</button>
-  <button id="save">Guardar JSON</button>
+<div class="plants-grid" id="plantsGrid">
+  <!-- Plantas generadas dinámicamente -->
 </div>
 
 <script>
-const img = document.getElementById('plantImg');
-const range = document.getElementById('weekRange');
-const weekInput = document.getElementById('weekInput');
-const stageInput = document.getElementById('stageInput');
-const heightInput = document.getElementById('heightInput');
-const nInput = document.getElementById('nInput');
-const pInput = document.getElementById('pInput');
-const kInput = document.getElementById('kInput');
-const miniCalendar = document.getElementById('miniCalendar');
-
-let current = 1;
-let autoInterval;
+const NUM_PLANTS = 25;
 let startDateValue = new Date();
+const plantsGrid = document.getElementById('plantsGrid');
+const today = new Date();
 
 function randomRange(min,max){ return Math.round(min + Math.random()*(max-min)); }
 
@@ -110,6 +60,18 @@ function getStage(week){
   if(week===8||week===9) return 'Floración media';
   if(week<=11) return 'Floración final / Maduración';
   return 'Cosecha';
+}
+
+function getStageClass(week){
+  const s = getStage(week);
+  switch(s){
+    case 'Germinación': return 'germinacion';
+    case 'Plántula': return 'plantula';
+    case 'Vegetativo': return 'vegetativo';
+    case 'Floración media': return 'floracion_media';
+    case 'Floración final / Maduración': return 'floracion_final';
+    case 'Cosecha': return 'cosecha';
+  }
 }
 
 function getDataForWeek(week){
@@ -126,91 +88,84 @@ function getDataForWeek(week){
   return {week,stage,height,nutrients};
 }
 
-function loadWeek(n){
-  n=Math.max(1,Math.min(12,n));
-  current=n;
-  const filename = `week${String(n).padStart(2,'0')}.webp`;
-  img.style.opacity=0;
-  setTimeout(()=>{
-    img.src=filename; img.style.opacity=1;
-    const data=getDataForWeek(n);
-    weekInput.value=data.week;
-    stageInput.value=data.stage;
-    heightInput.value=data.height;
-    nInput.value=data.nutrients.n;
-    pInput.value=data.nutrients.p;
-    kInput.value=data.nutrients.k;
-    const history=JSON.parse(localStorage.getItem('growthHistory')||'[]');
-    history.push(data);
-    localStorage.setItem('growthHistory',JSON.stringify(history));
-    range.value=n;
-    generateMiniCalendar();
-  },250);
+function generatePlantCard(id){
+  const card = document.createElement('div');
+  card.className='plant-card';
+  card.dataset.plantId=id;
+
+  const img = document.createElement('img');
+  img.className='plant-img';
+  img.src='week01.webp';
+  img.alt=`Planta ${id}`;
+  card.appendChild(img);
+
+  const info = document.createElement('div');
+  info.className='info-panel';
+  ['Semana','Etapa','Altura','N','P','K'].forEach(field=>{
+    const div = document.createElement('div');
+    div.className='info-item';
+    const label = document.createElement('label'); label.textContent=field+':';
+    const input = document.createElement('input');
+    input.id=`${field}${id}`;
+    div.appendChild(label);
+    div.appendChild(input);
+    info.appendChild(div);
+  });
+  const updateBtn = document.createElement('button'); updateBtn.textContent='Actualizar'; 
+  updateBtn.onclick=()=>updatePlant(id);
+  info.appendChild(updateBtn);
+  card.appendChild(info);
+
+  const miniCal = document.createElement('div'); miniCal.className='mini-calendar'; miniCal.id=`miniCal${id}`;
+  card.appendChild(miniCal);
+
+  plantsGrid.appendChild(card);
+
+  // Inicializar calendario
+  generateMiniCalendar(id);
 }
 
-// Generar mini calendario tipo cuadricula
-function generateMiniCalendar(){
-  const start = new Date(startDateValue);
-  const today = new Date();
-  miniCalendar.innerHTML="";
+function generateMiniCalendar(plantId){
+  const miniCal = document.getElementById(`miniCal${plantId}`);
+  miniCal.innerHTML='';
   for(let week=1; week<=12; week++){
     for(let day=0; day<7; day++){
-      const d = new Date(start);
-      d.setDate(start.getDate() + (week-1)*7 + day);
+      const d = new Date(startDateValue);
+      d.setDate(startDateValue.getDate() + (week-1)*7 + day);
       const box = document.createElement('div');
       box.className='day-box '+getStageClass(week);
-      if(today.toDateString() === d.toDateString()) box.classList.add('current-day');
-      box.title = `Semana ${week} - ${getStage(week)}\n${d.toLocaleDateString()}`;
-      box.textContent = d.getDate();
-      miniCalendar.appendChild(box);
+      if(today.toDateString()===d.toDateString()) box.classList.add('current-day');
+      box.title=`Semana ${week} - ${getStage(week)}\n${d.toLocaleDateString()}`;
+      box.textContent=d.getDate();
+      miniCal.appendChild(box);
     }
   }
 }
 
-function getStageClass(week){
-  const s = getStage(week);
-  switch(s){
-    case 'Germinación': return 'germinacion';
-    case 'Plántula': return 'plantula';
-    case 'Vegetativo': return 'vegetativo';
-    case 'Floración media': return 'floracion_media';
-    case 'Floración final / Maduración': return 'floracion_final';
-    case 'Cosecha': return 'cosecha';
-  }
+function updatePlant(id){
+  const week = parseInt(document.getElementById(`Semana${id}`).value);
+  const data = getDataForWeek(week);
+  document.getElementById(`Semana${id}`).value=data.week;
+  document.getElementById(`Etapa${id}`).value=data.stage;
+  document.getElementById(`Altura${id}`).value=data.height;
+  document.getElementById(`N${id}`).value=data.nutrients.n;
+  document.getElementById(`P${id}`).value=data.nutrients.p;
+  document.getElementById(`K${id}`).value=data.nutrients.k;
+  // Actualizar imagen
+  const card = document.querySelector(`.plant-card[data-plant-id='${id}'] .plant-img`);
+  card.src=`week${String(week).padStart(2,'0')}.webp`;
+  // Actualizar mini calendario
+  generateMiniCalendar(id);
 }
 
-// Aplicar fecha de inicio
+// Generar las 25 plantas
+for(let i=1;i<=NUM_PLANTS;i++) generatePlantCard(i);
+
+// Aplicar fecha de inicio global
 document.getElementById('applyStart').addEventListener('click',()=>{
   startDateValue = new Date(document.getElementById('startDate').value);
-  const today = new Date();
-  const daysDiff = Math.floor((today - startDateValue)/ (1000*60*60*24));
-  const weekNow = Math.min(12, Math.max(1, Math.ceil(daysDiff/7)));
-  loadWeek(weekNow);
+  for(let i=1;i<=NUM_PLANTS;i++) generateMiniCalendar(i);
 });
-
-// Controles
-document.getElementById('prev').addEventListener('click',()=>{ if(current>1) loadWeek(current-1); });
-document.getElementById('next').addEventListener('click',()=>{ if(current<12) loadWeek(current+1); });
-document.getElementById('auto').addEventListener('click',()=>{
-  clearInterval(autoInterval); let w=1;
-  autoInterval=setInterval(()=>{ if(w>12){clearInterval(autoInterval);return;} loadWeek(w); w++;},1500);
-});
-document.getElementById('save').addEventListener('click',()=>{
-  const history=JSON.parse(localStorage.getItem('growthHistory')||'[]');
-  const blob=new Blob([JSON.stringify(history,null,2)],{type:'application/json'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url; a.download='growth_history.json'; a.click();
-  URL.revokeObjectURL(url);
-});
-
-// Slider
-range.addEventListener('input',e=>loadWeek(parseInt(e.target.value)));
-
-// Init
-generateMiniCalendar();
-loadWeek(1);
-
 </script>
-
 </body>
 </html>
