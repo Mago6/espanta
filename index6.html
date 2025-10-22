@@ -55,6 +55,7 @@ h2 { text-align:center; margin-bottom:20px; color:#f00; }
     <option>Germinación</option>
     <option>Plántula</option>
     <option>Vegetativa</option>
+    <option>Pre-floración</option>
     <option>Floración</option>
     <option>Cosecha</option>
   </select>
@@ -112,26 +113,27 @@ for(let i=1;i<=NUM_PLANTS;i++){
   plantSelect.appendChild(option);
 }
 
-// === NUEVA LÓGICA DE ETAPAS Y SEMANAS ===
+// === NUEVA LÓGICA DE 48 SEMANAS ===
 function getStageNameByWeek(week){
   if(week===1) return "Germinación";
-  if(week>=2 && week<=6) return "Plántula";           // hasta mes y medio
-  if(week>=7 && week<=16) return "Vegetativa";        // 1.5 a 4 meses
-  if(week>=17 && week<=24) return "Floración";        // 4 a 6 meses
-  if(week>24 && week<=48) return "Cosecha";           // resto del año
+  if(week>=2 && week<=3) return "Plántula";
+  if(week>=4 && week<=40) return "Vegetativa";
+  if(week>=41 && week<=42) return "Pre-floración";
+  if(week>=43 && week<=48) return "Floración";
   return "Cosecha";
 }
 
+// Asignación de imágenes según etapa
 function getImageForWeek(week){
-  if(week===1) return "week01.webp";
-  if(week>=2 && week<=3) return `week0${week}.webp`;        // plántula
-  if(week>=4 && week<=8) return `week0${Math.min(week,8)}.webp`; // vegetativa
-  if(week>=9 && week<=12) return `week${String(week).padStart(2,'0')}.webp`; // floración
-  if(week>12 && week<=48) return "week12.webp"; // cosecha
+  if(week===1) return "week01.webp";               // germinación
+  if(week>=2 && week<=3) return `week0${week}.webp`;  // plántula
+  if(week>=4 && week<=8) return `week0${Math.min(week,8)}.webp`; // vegetativa temprana
+  if(week>=9 && week<=12) return `week${String(week).padStart(2,'0')}.webp`; // floración visible
+  if(week>12 && week<=48) return "week12.webp";    // floración avanzada/cosecha
   return "week01.webp";
 }
 
-// Calcular semana según la fecha
+// Calcular semana según fecha
 function calculateWeek(start){
   const today=new Date();
   const startDate=new Date(start);
@@ -141,7 +143,7 @@ function calculateWeek(start){
   return week<1?1:week;
 }
 
-// Mostrar resumen con semanas y etapa
+// Mostrar resumen
 function showInfo(data){
   const weeksPassed=data.week;
   const weeksRemaining=Math.max(48-weeksPassed,0);
@@ -154,7 +156,7 @@ function showInfo(data){
   `;
 }
 
-// Calendario
+// === CALENDARIO ===
 function generateCalendar(plantId){
   calendarContainer.innerHTML='';
   const data=plantsData[plantId];
